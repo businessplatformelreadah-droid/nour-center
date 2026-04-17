@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@600;800&display=swap');
+
+:root {
+    --main-blue: #00a8ff;        
+    --nav-blue: #81d4fa;         
+    --light-blue: #e1f5fe;       
+    --white: #ffffff;
+    --red-back: #ff7675;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Cairo', sans-serif;
+    background-color: #f0f4f8;
+    direction: rtl;
+    text-align: center;
+    min-height: 100vh;
+}
+
+.navbar {
+    background-color: var(--nav-blue);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 5%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-logo { font-size: 22px; font-weight: 800; color: var(--white); text-decoration: none; }
+.nav-links { display: flex; align-items: center; gap: 15px; }
+.nav-links a { text-decoration: none; color: var(--white); font-weight: bold; font-size: 15px; }
+
+.track-btn-nav {
+    background: var(--white);
+    color: var(--main-blue) !important;
+    padding: 5px 12px;
+    border-radius: 20px;
+    transition: 0.3s;
+}
+
+.admin-btn-nav {
+    background: #2c3e50;
+    color: white !important;
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 13px !important;
+}
+
+.container { padding: 30px 20px; max-width: 1100px; margin: 0 auto; }
+
+.btn-main-hero {
+    background: var(--main-blue); color: white; border: none;
+    padding: 15px 35px; border-radius: 12px; font-size: 22px;
+    font-weight: 800; cursor: pointer; transition: 0.3s;
+}
+
+.btn-back {
+    background: var(--white); color: var(--red-back); border: 2px solid var(--red-back);
+    padding: 10px 25px; border-radius: 10px; font-size: 17px; font-weight: bold;
+    cursor: pointer; transition: 0.3s; margin-top: 25px; display: inline-flex; align-items: center; gap: 8px;
+}
+.btn-back:hover { background: var(--red-back); color: white; transform: translateX(5px); }
+
+.grid-menu { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
+.grid-menu button {
+    background: white; border: 2px solid var(--main-blue); padding: 25px;
+    border-radius: 15px; font-size: 18px; font-weight: 800; color: var(--main-blue);
+    cursor: pointer; transition: 0.3s;
+}
+.grid-menu button:hover { background: var(--main-blue); color: white; transform: translateY(-5px); }
+
+.card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); width: 100%; max-width: 650px; margin: 0 auto; }
+input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; text-align: center; }
+
+@media (max-width: 768px) { .grid-menu { grid-template-columns: repeat(2, 1fr); } }
+/* تنسيقات خاصة للموبايل */
+@media (max-width: 600px) {
+    .container {
+        padding: 10px; /* تقليل المسافات الجانبية */
+    }
+    h1 {
+        font-size: 24px !important; /* تصغير العناوين الكبيرة */
+    }
+    .btn-main-hero {
+        width: 100%; /* جعل الأزرار تأخذ عرض الشاشة بالكامل */
+        font-size: 18px;
+    }
+}

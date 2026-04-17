@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>الأقسام - حلم نور</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* تعريف حركة "النط" (Bouncing) */
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0) scale(1);}
+            40% {transform: translateY(-15px) scale(1.1);} /* قفزة للأعلى مع تكبير بسيط */
+            60% {transform: translateY(-7px) scale(1.05);} /* قفزة أصغر */
+        }
+
+        /* تنسيقات قسم أزرار التواصل الدائرية في الأسفل */
+        .social-section-circular {
+            margin: 50px auto 30px;
+            padding: 20px;
+            max-width: 600px;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 20px; /* مسافة أكبر بين الدوائر */
+            border-top: 1px solid #eaeaea;
+            padding-top: 40px;
+        }
+
+        /* تنسيق الزر الدائري الأساسي */
+        .social-btn-circle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;  /* عرض ثابت للدائرة */
+            height: 60px; /* ارتفاع ثابت للدائرة */
+            border-radius: 50%; /* جعل الزر دائرياً تماماً */
+            text-decoration: none;
+            color: white;
+            transition: 0.3s box-shadow ease, 0.3s background-color ease; /* انتقال ناعم للألوان والظل */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        /* حجم الأيقونة داخل الدائرة */
+        .social-btn-circle i {
+            font-size: 1.8rem;
+        }
+
+        /* التأثير عند "لمس" أو الوقوف بالماوس على الزر (تفعيل الحركة) */
+        .social-btn-circle:hover {
+            animation: bounce 1s ease; /* تشغيل حركة النط */
+            box-shadow: 0 8px 25px rgba(0,0,0,0.25); /* زيادة الظل لإعطاء إحساس بالارتفاع */
+        }
+
+        /* ألوان المنصات الرسمية */
+        .fb-page { background-color: #1877F2; }
+        .fb-group { background-color: #4267B2; }
+        .wa-channel { background-color: #25D366; }
+
+        /* تغيير لون الخلفية قليلاً عند الهوفر لإضافة تفاعل */
+        .fb-page:hover { background-color: #1565D8; }
+        .fb-group:hover { background-color: #365899; }
+        .wa-channel:hover { background-color: #1DA851; }
+
+        /* عنوان القسم السفلي */
+        .social-title-circular {
+            width: 100%;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="nav-logo">سنتر حلم نور</a>
+        <div class="nav-links">
+            <a href="index.html">الرئيسية</a>
+            <a href="track.html" class="track-btn-nav">🔍 تتبع طلبي</a>
+            <a href="admin.html" class="admin-btn-nav">⚙️ الإدارة</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>اختار تخصصك وانطلق</h1>
+        <div class="grid-menu">
+            <button onclick="showSub('secondary')">🎓<br>الصفوف الثانوية</button>
+            <button onclick="showSub('prep')">📚<br>الصفوف الإعدادية</button>
+            <button onclick="showSub('primary')">✏️<br>الصفوف الابتدائية</button>
+            <button onclick="showSub('courses')">💻<br>كورسات مختلفة</button>
+            <button onclick="showSub('foundation')">🏗️<br>تأسيس</button>
+            <button onclick="location.href='quiz.html'">📝<br>اختبارات</button>
+        </div>
+
+        <button onclick="location.href='index.html'" class="btn-back">⬅️ العودة للرئيسية</button>
+
+        <div class="social-section-circular">
+            <p class="social-title-circular">للاستفسارات والشكاوى، تواصل معنا:</p>
+            
+            <a href="https://www.facebook.com/share/1AqWPF3LiK/" target="_blank" class="social-btn-circle fb-page" title="صفحتنا على فيسبوك">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+
+            <a href="https://www.facebook.com/share/g/1DVCi3kNDM/" target="_blank" class="social-btn-circle fb-group" title="جروب الأكاديمية الرسمي">
+                <i class="fas fa-users"></i>
+            </a>
+
+            <a href="https://whatsapp.com/channel/0029VbB5TbF4Y9lfpzg2sk1T" target="_blank" class="social-btn-circle wa-channel" title="قناة الواتساب الرسمية">
+                <i class="fab fa-whatsapp"></i>
+            </a>
+        </div>
+    </div>
+
+    <script>function showSub(t){ window.location.href="sub-categories.html?type="+t; }</script>
+</body>
+</html>

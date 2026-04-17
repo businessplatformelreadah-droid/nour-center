@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أكاديمية حلم نور - الأقسام</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --main: #2c3e50; --accent: #00a8ff; --bg: #f4f7f6; --white: #ffffff; }
+        body { background: var(--bg); font-family: 'Cairo', sans-serif; margin: 0; padding: 20px; direction: rtl; text-align: center; }
+        .container { max-width: 1100px; margin: auto; }
+        h1 { color: var(--main); margin-bottom: 30px; border-bottom: 3px solid var(--accent); display: inline-block; padding-bottom: 10px; }
+        .section-title { background: var(--main); color: white; padding: 12px; border-radius: 12px; margin: 30px 0 20px 0; text-align: right; padding-right: 25px; font-size: 1.4rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .btn-sub { background: var(--white); border: 2px solid var(--accent); padding: 25px 15px; border-radius: 15px; font-size: 1.1rem; font-weight: 800; color: var(--main); cursor: pointer; transition: 0.3s all ease; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; }
+        .btn-sub:hover { background: var(--accent); color: white; transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,168,255,0.3); }
+        .btn-back { margin-top: 30px; background: #ff7675; color: white; border: none; padding: 12px 30px; border-radius: 10px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="mainTitle">جاري التحميل...</h1>
+        <div id="wrapper"></div>
+        <button onclick="location.href='categories.html'" class="btn-back">⬅️ الرجوع للرئيسية</button>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const type = params.get('type');
+        const wrapper = document.getElementById('wrapper');
+        const mainTitle = document.getElementById('mainTitle');
+
+        const categoriesData = {
+            'secondary': [
+                { title: "📘 الصف الأول الثانوي", items: ['1ث - اللغة العربية', '1ث - لغة أجنبية أولى', '1ث - لغة أجنبية ثانية', '1ث - الرياضيات', '1ث - الفيزياء', '1ث - الكيمياء', '1ث - الأحياء', '1ث - التاريخ', '1ث - الجغرافيا', '1ث - الفلسفة والمنطق'] },
+                { title: "📗 الصف الثاني الثانوي (أساسي)", items: ['2ث - اللغة العربية', '2ث - لغة أجنبية أولى', '2ث - لغة أجنبية ثانية'] },
+                { title: "📗 الصف الثاني الثانوي (علمي)", items: ['2ث علمي - الرياضيات', '2ث علمي - الفيزياء', '2ث علمي - الكيمياء', '2ث علمي - الأحياء'] },
+                { title: "📗 الصف الثاني الثانوي (أدبي)", items: ['2ث أدبي - التاريخ', '2ث أدبي - الجغرافيا', '2ث أدبي - علم النفس', '2ث أدبي - الفلسفة'] },
+                { title: "📕 الصف الثالث الثانوي (مشترك)", items: ['3ث - اللغة العربية', '3ث - لغة أجنبية أولى'] },
+                { title: "📕 الصف الثالث الثانوي (علمي علوم)", items: ['3ث علوم - الأحياء', '3ث علوم - الكيمياء', '3ث علوم - الفيزياء'] },
+                { title: "📕 الصف الثالث الثانوي (علمي رياضة)", items: ['3ث رياضة - الرياضيات', '3ث رياضة - الفيزياء', '3ث رياضة - الكيمياء'] },
+                { title: "📕 الصف الثالث الثانوي (أدبي)", items: ['3ث أدبي - التاريخ', '3ث أدبي - الجغرافيا', '3ث أدبي - علم النفس والاجتماع', '3ث أدبي - الفلسفة والمنطق'] }
+            ],
+            
+            'prep': [
+                { title: "📚 الصف الأول الإعدادي", items: ['1ع - العلوم', '1ع - الرياضيات', '1ع - الدراسات الاجتماعية', '1ع - اللغة الإنجليزية', '1ع - اللغة العربية'] },
+                { title: "📚 الصف الثاني الإعدادي", items: ['2ع - لغة عربية', '2ع - لغة إنجليزية', '2ع - دراسات اجتماعية', '2ع - رياضيات', '2ع - علوم'] },
+                { title: "📚 الصف الثالث الإعدادي", items: ['3ع - علوم', '3ع - دراسات', '3ع - رياضيات', '3ع - لغة عربية', '3ع - لغة إنجليزية'] }
+            ],
+
+            'primary': [
+                { title: "📘 الصف الأول الابتدائي", items: ['1ب - اللغة العربية', '1ب - الرياضيات', '1ب - اللغة الإنجليزية'] },
+                { title: "📗 الصف الثاني الابتدائي", items: ['2ب - اللغة العربية', '2ب - الرياضيات', '2ب - اللغة الإنجليزية'] },
+                { title: "📙 الصف الثالث الابتدائي", items: ['3ب - اللغة العربية', '3ب - الرياضيات', '3ب - اللغة الإنجليزية', '3ب - الدراسات الاجتماعية', '3ب - العلوم'] },
+                { title: "📕 الصف الرابع الابتدائي", items: ['4ب - اللغة العربية', '4ب - الرياضيات', '4ب - اللغة الإنجليزية', '4ب - العلوم', '4ب - الدراسات الاجتماعية'] },
+                { title: "📒 الصف الخامس الابتدائي", items: ['5ب - اللغة العربية', '5ب - الرياضيات', '5ب - اللغة الإنجليزية', '5ب - العلوم', '5ب - الدراسات الاجتماعية'] },
+                { title: "📓 الصف السادس الابتدائي", items: ['6ب - اللغة العربية', '6ب - الرياضيات', '6ب - اللغة الإنجليزية', '6ب - العلوم', '6ب - الدراسات الاجتماعية'] }
+            ],
+
+            'exams': [
+                { title: "📝 اختبارات ومصادر 1 إعدادي", items: ['1ع - العلوم', '1ع - الرياضيات', '1ع - الدراسات الاجتماعية', '1ع - اللغة الإنجليزية', '1ع - اللغة العربية'] },
+                { title: "📝 اختبارات ومصادر 2 إعدادي", items: ['2ع - العلوم', '2ع - الرياضيات', '2ع - الدراسات الاجتماعية', '2ع - اللغة الإنجليزية', '2ع - اللغة العربية'] },
+                { title: "📝 اختبارات ومصادر 3 إعدادي", items: ['3ع - العلوم', '3ع - الرياضيات', '3ع - الدراسات الاجتماعية', '3ع - اللغة الإنجليزية', '3ع - اللغة العربية'] }
+            ],
+
+            'courses': [{ title: "💻 كورسات تعليمية", items: [ 'كورس تأسيس اللغة الأنجليزية', 'كورس المهارات الناعمة', 'كورس اللغة الفرنسية', 'كورس البرمجة', 'كورس استخدام كانفا'] }],
+            'foundation': [{ title: "🏗️ قسم التأسيس", items: ['تأسيس قواعد نحوية', 'تأسيس الكيمياء للثانوية العامة', 'تأسيس لغة إنجليزية '] }]
+        };
+
+        if (type && categoriesData[type]) {
+            const titles = { 'secondary': 'المرحلة الثانوية', 'prep': 'المرحلة الإعدادية', 'primary': 'المرحلة الابتدائية', 'exams': 'الاختبارات والمصادر', 'courses': 'الكورسات', 'foundation': 'التأسيس' };
+            mainTitle.innerText = titles[type];
+
+            categoriesData[type].forEach(section => {
+                const sTitle = document.createElement('div');
+                sTitle.className = 'section-title';
+                sTitle.innerText = "📌 " + section.title;
+                wrapper.appendChild(sTitle);
+
+                const grid = document.createElement('div');
+                grid.className = 'grid';
+
+                section.items.forEach(name => {
+                    const btn = document.createElement('div');
+                    btn.className = 'btn-sub';
+                    btn.innerText = name;
+
+                    btn.onclick = () => {
+                        // التعديل هنا: إذا كان القسم هو الاختبارات، يذهب لصفحة quiz.html
+                        if (type === 'exams') {
+                            location.href = `quiz.html?cat=${encodeURIComponent(name)}`;
+                        } else {
+                            const userPhone = localStorage.getItem('current_user_phone');
+                            const isApproved = localStorage.getItem('active_' + name + '_' + userPhone);
+
+                            if (isApproved === 'true') {
+                                location.href = `track.html`;
+                            } else {
+                                location.href = `payment.html?target=${encodeURIComponent(name)}`;
+                            }
+                        }
+                    };
+                    grid.appendChild(btn);
+                });
+                wrapper.appendChild(grid);
+            });
+        }
+    </script>
+</body>
+</html>

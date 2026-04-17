@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المكتبة الرقمية والاختبارات | سنتر حلم نور</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --main: #2c3e50; --accent: #3498db; --bg: #f8f9fa; 
+            --pdf-color: #e74c3c; --link-color: #27ae60; --white: #ffffff;
+        }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); margin: 0; padding: 0; direction: rtl; }
+        .navbar { background: var(--main); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .btn-back { background: rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; transition: 0.3s; }
+        .btn-back:hover { background: var(--accent); }
+        .container { max-width: 900px; margin: 20px auto; padding: 0 15px; }
+        .level-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-right: 5px solid var(--accent); }
+        .level-title { font-size: 1.2rem; font-weight: bold; color: var(--main); margin-bottom: 15px; display: block; }
+        .subjects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+        .subject-btn { background: #f1f2f6; border: 1px solid #ddd; padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 0.9rem; font-weight: bold; color: #555; font-family: 'Cairo'; }
+        .subject-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+        .section-title { color: var(--main); border-right: 5px solid var(--accent); padding-right: 15px; margin: 30px 0 15px; font-size: 20px; }
+        .resource-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #eee; }
+        .info { display: flex; align-items: center; gap: 12px; }
+        .icon { width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .pdf-icon { background: #fee2e2; color: var(--pdf-color); }
+        .link-icon { background: #dcfce7; color: var(--link-color); }
+        .action-btn { text-decoration: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 13px; }
+        .pdf-btn { background: var(--pdf-color); color: white; }
+        .link-btn { background: var(--link-color); color: white; }
+        #resourcesArea { display: none; margin-top: 20px; border-top: 2px solid #ddd; padding-top: 20px; }
+        .loading-text { text-align: center; color: var(--accent); font-weight: bold; padding: 20px; }
+        @media (max-width: 500px) { .subjects-grid { grid-template-columns: repeat(2, 1fr); } .resource-card { flex-direction: column; text-align: center; gap: 10px; } }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <span id="pageTitle">المكتبة الرقمية والاختبارات</span>
+        <a href="index.html" class="btn-back">🏠 الرئيسية</a>
+    </div>
+
+    <div class="container">
+        <div id="selectionArea">
+            <h2 style="text-align: center; color: var(--main);">اختر الصف الدراسي والمادة 📚</h2>
+            <div id="levelsContainer"></div>
+        </div>
+
+        <div id="resourcesArea">
+            <button onclick="resetView()" style="background:#888; color:white; border:none; padding:5px 15px; border-radius:5px; cursor:pointer; margin-bottom:10px;">⬅️ تغيير المادة</button>
+            <h2 id="selectedSubjectTitle" style="color: var(--accent); margin-bottom: 20px;"></h2>
+            <h2 class="section-title">📂 المذكرات والملفات (PDF)</h2>
+            <div id="pdfList"></div>
+            <h2 class="section-title">🔗 روابط الاختبارات والمصادر</h2>
+            <div id="linksList"></div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseURL = "https://helmy-5b222-default-rtdb.firebaseio.com/tests.json";
+
+        const studyData = [
+            { title: "📘 الصف الأول الابتدائي", short: "1ب", subjects: ["عربي", "الرياضيات", "اللغة الإنجليزية"] },
+            { title: "📙 الصف الثالث الابتدائي", short: "3ب", subjects: ["عربي", "الرياضيات", "اللغة الإنجليزية"] },
+            { title: "📓 الصف السادس الابتدائي", short: "6ب", subjects: ["عربي", "الرياضيات", "اللغة الإنجليزية"] },
+            { title: "📘 الصف الأول الثانوي", short: "1ث", subjects: ["الفيزياء", "الكيمياء", "عربي"] },
+            { title: "📕 الصف الثالث الثانوي", short: "3ث", subjects: ["تاريخ", "جغرافيا", "عربي"] }
+        ];
+
+        function init() {
+            const container = document.getElementById('levelsContainer');
+            studyData.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'level-card';
+                card.innerHTML = `
+                    <span class="level-title">${item.title}</span>
+                    <div class="subjects-grid">
+                        ${item.subjects.map(sub => {
+                            const itemKey = `${item.short}-${sub}`;
+                            return `<button class="subject-btn" onclick="loadContent('${itemKey}', '${item.title} - ${sub}')">${sub}</button>`;
+                        }).join('')}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function loadContent(itemKey, fullTitle) {
+            document.getElementById('selectionArea').style.display = 'none';
+            document.getElementById('resourcesArea').style.display = 'block';
+            document.getElementById('selectedSubjectTitle').innerText = fullTitle;
+            
+            const pdfList = document.getElementById('pdfList');
+            const linksList = document.getElementById('linksList');
+            pdfList.innerHTML = '<div class="loading-text">جاري جلب البيانات... ⏳</div>';
+            linksList.innerHTML = '';
+
+            fetch(firebaseURL)
+            .then(res => res.json())
+            .then(data => {
+                pdfList.innerHTML = "";
+                if (!data) {
+                    pdfList.innerHTML = "لا توجد بيانات.";
+                    return;
+                }
+                
+                // تحويل بيانات فايربيز لمصفوفة
+                const allTests = Object.keys(data).map(key => data[key]);
+                const filtered = allTests.filter(ex => ex.cat === itemKey);
+
+                if (filtered.length === 0) {
+                    pdfList.innerHTML = "لا توجد ملفات مرفوعة لهذا القسم.";
+                }
+
+                filtered.forEach(item => {
+                    const html = `
+                        <div class="resource-card">
+                            <div class="info">
+                                <div class="icon ${item.type === 'pdf' ? 'pdf-icon' : 'link-icon'}">${item.type === 'pdf' ? '📄' : '🌐'}</div>
+                                <div class="title-text">${item.title}</div>
+                            </div>
+                            <a href="${item.url}" target="_blank" class="action-btn ${item.type === 'pdf' ? 'pdf-btn' : 'link-btn'}">
+                                ${item.type === 'pdf' ? '🔓 فتح الملف' : '📝 دخول الاختبار'}
+                            </a>
+                        </div>`;
+                    
+                    if(item.type === 'pdf') pdfList.innerHTML += html;
+                    else linksList.innerHTML += html;
+                });
+            })
+            .catch(() => {
+                pdfList.innerHTML = "خطأ في تحميل البيانات.";
+            });
+        }
+
+        function resetView() {
+            document.getElementById('selectionArea').style.display = 'block';
+            document.getElementById('resourcesArea').style.display = 'none';
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
