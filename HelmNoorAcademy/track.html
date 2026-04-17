@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>تتبع اشتراكاتك | حلم نور</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="card" style="background:white; padding:30px; border-radius:20px; box-shadow:0 10px 25px rgba(0,0,0,0.1);">
+            <h1>تتبع حالة اشتراكك 🔍</h1>
+            <p style="color:#666; margin-bottom:20px;">أدخل رقم الموبايل لعرض كل حصصك المفعلة</p>
+            <input type="text" id="searchPhone" placeholder="أدخل رقم موبايلك هنا" style="width:100%; padding:15px; border-radius:10px; border:2px solid #ddd; font-family:'Cairo'; font-size:18px; text-align:center; outline:none; margin-bottom:15px;">
+            <button class="btn-main-hero" style="width:100%" onclick="checkStatus()">بحث عن اشتراكاتي</button>
+            
+            <div id="resultStatus" style="margin-top:25px;"></div>
+        </div>
+        <button onclick="location.href='index.html'" class="btn-back">⬅️ الرئيسية</button>
+    </div>
+
+    <script>
+        function checkStatus() {
+            const phone = document.getElementById('searchPhone').value.trim();
+            const res = document.getElementById('resultStatus');
+            res.innerHTML = ""; // مسح النتائج السابقة
+            
+            if(!phone) return alert("اكتب رقمك الأول!");
+
+            localStorage.setItem('current_user_phone', phone); // تسجيل دخول الطالب
+
+            // جلب كل الأقسام المفعلة لهذا الرقم من الـ LocalStorage
+            let userApprovedSections = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                // بنبحث عن المفاتيح اللي بتبدأ بـ active_ وتنتهي برقم تليفون الطالب
+                if (key.startsWith('active_') && key.endsWith('_' + phone)) {
+                    let sectionName = key.replace('active_', '').replace('_' + phone, '');
+                    userApprovedSections.push(sectionName);
+                }
+            }
+
+            // فحص حالة الطلب المعلق (إذا لم يكن هناك أقسام مفعلة بعد)
+            const pendingData = JSON.parse(localStorage.getItem('user_auth_' + phone));
+
+            if (userApprovedSections.length === 0 && !pendingData) {
+                res.innerHTML = "<div style='background:#ffeaea; padding:15px; border-radius:10px; color:#e74c3c; text-align:center;'><b>رقم غير مسجل أو لم يتم إرسال طلب بعد</b></div>";
+                return;
+            }
+
+            // 1. عرض الأقسام المعلقة (إن وجدت)
+            if(pendingData && pendingData.status === 'pending') {
+                res.innerHTML += `
+                <div style="background:#fff3cd; padding:15px; border-radius:10px; margin-bottom:15px; border:1px solid #f1c40f; text-align:center;">
+                    ⏳ قيد المراجعة في قسم: <b>${pendingData.targetName}</b><br>
+                    <small>سيتم التفعيل فور مراجعة الإدارة للوصل</small>
+                </div>`;
+            }
+
+            // 2. عرض الأقسام المفعلة وكل الحصص اللي جواها
+            userApprovedSections.forEach(section => {
+                let lessons = JSON.parse(localStorage.getItem('lessons_' + section)) || [];
+                
+                let sectionBox = document.createElement('div');
+                sectionBox.style = "background:#e8f5e9; padding:15px; border-radius:15px; margin-bottom:15px; border:2px solid #2ecc71; text-align:right;";
+                sectionBox.innerHTML = `<h3 style="margin:0 0 10px 0; color:#2c3e50; font-size:18px;">✅ قسم: ${section}</h3>`;
+
+                if(lessons.length > 0) {
+                    // عرض كل الفيديوهات المرفوعة في هذا القسم
+                    lessons.forEach((video, index) => {
+                        sectionBox.innerHTML += `
+                            <button class='btn-main-hero' style="background:#3498db; width:100%; margin-bottom:8px; padding:10px; font-size:15px;" 
+                                onclick="location.href='video-player.html?video=${encodeURIComponent(video.url)}&title=${encodeURIComponent(video.title)}'">
+                                🎬 حصة (${index + 1}): ${video.title}
+                            </button>`;
+                    });
+                } else {
+                    sectionBox.innerHTML += `<p style='color:#666; font-size:14px; margin:0;'>الاشتراك مفعل، وجاري رفع الحصص حالياً.</p>`;
+                }
+                res.appendChild(sectionBox);
+            });
+        }
+    </script>
+</body>
+</html>

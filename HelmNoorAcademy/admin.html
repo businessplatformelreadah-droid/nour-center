@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم | سنتر حلم نور</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --main: #2c3e50; --accent: #3498db; --bg: #f4f7f6; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); direction: rtl; padding: 20px; }
+        .admin-container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: var(--main); margin-bottom: 25px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #444; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Cairo'; box-sizing: border-box; }
+        .btn-submit { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; margin-top: 10px; }
+        .btn-submit:hover { background: var(--main); }
+        .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
+        .status { margin-top: 15px; text-align: center; font-weight: bold; min-height: 24px; }
+    </style>
+</head>
+<body>
+
+<div class="admin-container">
+    <h2>إضافة مذكرات واختبارات جديدة 🚀</h2>
+    
+    <div class="form-group">
+        <label>عنوان الرابط (مثلاً: مذكرة النحو الشاملة)</label>
+        <input type="text" id="title" placeholder="اكتب العنوان هنا...">
+    </div>
+
+    <div class="form-group">
+        <label>الرابط (رابط PDF أو رابط Google Form)</label>
+        <input type="text" id="url" placeholder="https://...">
+    </div>
+
+    <div class="form-group">
+        <label>القسم (الصف والمادة)</label>
+        <select id="cat">
+            <optgroup label="المرحلة الابتدائية">
+                <option value="1ب-عربي">1ب - عربي</option>
+                <option value="3ب-عربي">3ب - عربي</option>
+                <option value="6ب-عربي">6ب - عربي</option>
+            </optgroup>
+            <optgroup label="المرحلة الثانوية">
+                <option value="1ث-فيزياء">1ث - فيزياء</option>
+                <option value="3ث-تاريخ">3ث - تاريخ</option>
+                <option value="3ث-جغرافيا">3ث - جغرافيا</option>
+            </optgroup>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>النوع</label>
+        <select id="type">
+            <option value="pdf">📄 ملف PDF (مذكرة)</option>
+            <option value="link">🌐 رابط (امتحان أونلاين)</option>
+        </select>
+    </div>
+
+    <button class="btn-submit" id="submitBtn" onclick="addEntry()">رفع البيانات الآن ✅</button>
+    <div id="status" class="status"></div>
+</div>
+
+<script>
+    // رابط فايربيز الخاص بك
+    const firebaseURL = "https://helmy-5b222-default-rtdb.firebaseio.com/tests.json";
+
+    function addEntry() {
+        const title = document.getElementById('title').value.trim();
+        const url = document.getElementById('url').value.trim();
+        const cat = document.getElementById('cat').value;
+        const type = document.getElementById('type').value;
+        const status = document.getElementById('status');
+        const btn = document.getElementById('submitBtn');
+
+        if(!title || !url) {
+            alert("برجاء إدخال كافة البيانات المطلوبة!");
+            return;
+        }
+
+        status.innerHTML = "جاري الحفظ في فايربيز... ⏳";
+        status.style.color = "orange";
+        btn.disabled = true;
+
+        const data = { title, url, cat, type, date: new Date().getTime() };
+
+        fetch(firebaseURL, {
+            method: 'POST',
+            body: JSON.stringify(data)
+        })
+        .then(res => {
+            if(res.ok) {
+                status.innerHTML = "تم بنجاح! الرابط متاح للطلاب الآن 🎉";
+                status.style.color = "green";
+                document.getElementById('title').value = '';
+                document.getElementById('url').value = '';
+            }
+        })
+        .catch(err => {
+            status.innerHTML = "حدث خطأ! تأكد من الإنترنت.";
+            status.style.color = "red";
+        })
+        .finally(() => btn.disabled = false);
+    }
+</script>
+</body>
+</html>
