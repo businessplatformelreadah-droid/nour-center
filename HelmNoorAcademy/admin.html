@@ -1,108 +1,156 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم | سنتر حلم نور</title>
+    <meta charset="UTF-8">
+    <title>لوحة تحكم المالك | أكاديمية حلم نور</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --main: #2c3e50; --accent: #3498db; --bg: #f4f7f6; }
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); direction: rtl; padding: 20px; }
-        .admin-container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: var(--main); margin-bottom: 25px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #444; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Cairo'; box-sizing: border-box; }
-        .btn-submit { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; margin-top: 10px; }
-        .btn-submit:hover { background: var(--main); }
-        .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
-        .status { margin-top: 15px; text-align: center; font-weight: bold; min-height: 24px; }
+        :root { --main: #2c3e50; --danger: #e74c3c; --success: #27ae60; --accent: #3498db; --bg: #f0f2f5; --exam: #8e44ad; }
+        body { background: var(--bg); font-family: 'Cairo', sans-serif; margin: 0; padding: 20px; direction: rtl; }
+        #loginOverlay { position: fixed; inset: 0; background: var(--main); z-index: 10000; display: flex; justify-content: center; align-items: center; }
+        .login-box { background: white; padding: 30px; border-radius: 15px; text-align: center; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .login-box input { width: 100%; padding: 12px; margin: 20px 0; border: 2px solid #eee; border-radius: 10px; text-align: center; font-size: 18px; outline: none; }
+        .login-box button { width: 100%; background: var(--success); color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 18px; }
+        .container { max-width: 1100px; margin: auto; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; background: white; padding: 15px 25px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .admin-header h1 { margin: 0; font-size: 24px; color: var(--main); }
+        .btn-home { background: var(--main); color: white; text-decoration: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .card { background: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #e1e4e8; }
+        h2 { color: var(--main); border-right: 5px solid var(--accent); padding-right: 15px; margin-top: 0; font-size: 22px; }
+        .table-wrapper { overflow-x: auto; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
+        th { background: #f8f9fa; color: var(--main); font-weight: bold; }
+        input, select { padding: 12px; border: 2px solid #f0f0f0; border-radius: 10px; font-family: 'Cairo'; width: 100%; box-sizing: border-box; outline: none; }
+        .btn { border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; transition: 0.2s; font-family: 'Cairo'; }
+        .btn-add, .btn-exam { background: var(--success); font-size: 18px; width: 100%; margin-top: 15px; }
+        .btn-exam { background: var(--exam); }
+        .btn-del { background: var(--danger); }
+        .status-msg { text-align: center; font-weight: bold; margin-top: 10px; color: var(--accent); }
     </style>
 </head>
 <body>
 
-<div class="admin-container">
-    <h2>إضافة مذكرات واختبارات جديدة 🚀</h2>
-    
-    <div class="form-group">
-        <label>عنوان الرابط (مثلاً: مذكرة النحو الشاملة)</label>
-        <input type="text" id="title" placeholder="اكتب العنوان هنا...">
+    <div id="loginOverlay">
+        <div class="login-box">
+            <h2 style="border:none">لوحة التحكم السرية 🔐</h2>
+            <input type="password" id="passInput" placeholder="اكتب الباسورد هنا">
+            <button onclick="unlock()">فتح النظام</button>
+        </div>
     </div>
 
-    <div class="form-group">
-        <label>الرابط (رابط PDF أو رابط Google Form)</label>
-        <input type="text" id="url" placeholder="https://...">
+    <div class="container">
+        <div class="admin-header">
+            <h1>إدارة أكاديمية حلم نور 🚀</h1>
+            <a href="index.html" class="btn-home">🏠 العودة للرئيسية</a>
+        </div>
+
+        <div class="card" style="border-right: 8px solid var(--exam);">
+            <h2 style="border-right-color: var(--exam);">📝 إضافة اختبار أو ملف PDF</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                <div>
+                    <label>القسم الدراسي والمادة:</label>
+                    <select id="examCatInput">
+                        <option disabled selected value="">-- اختر المادة --</option>
+                        <optgroup label="المرحلة الابتدائية">
+                            <option value="1ب-عربي">1ب - اللغة العربية</option>
+                            <option value="3ب-عربي">3ب - اللغة العربية</option>
+                            <option value="6ب-عربي">6ب - اللغة العربية</option>
+                        </optgroup>
+                        <optgroup label="المرحلة الإعدادية">
+                            <option value="3ع-عربي">3ع - اللغة العربية</option>
+                        </optgroup>
+                        <optgroup label="المرحلة الثانوية">
+                            <option value="1ث-فيزياء">1ث - الفيزياء</option>
+                            <option value="3ث-تاريخ">3ث - التاريخ</option>
+                            <option value="3ث-جغرافيا">3ث - الجغرافيا</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div>
+                    <label>نوع الملف:</label>
+                    <select id="examType">
+                        <option value="pdf">ملف PDF (مذكرة/اختبار)</option>
+                        <option value="link">رابط موقع خارجي (يوتيوب/امتحان)</option>
+                    </select>
+                </div>
+                <div><label>اسم الاختبار/الملف:</label><input type="text" id="examTitle" placeholder="مثال: مذكرة النحو"></div>
+                <div><label>الرابط المباشر:</label><input type="text" id="examUrl" placeholder="ضع الرابط هنا"></div>
+            </div>
+            <button class="btn btn-exam" id="saveBtn" onclick="saveToFirebase()">نشر الاختبار/الملف الآن 🚀</button>
+            <div id="status" class="status-msg"></div>
+        </div>
+
+        <div class="card">
+            <h2>📑 إدارة الملفات المرفوعة</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>القسم</th><th>النوع</th><th>العنوان</th><th>حذف</th></tr></thead>
+                    <tbody id="examListBody"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <div class="form-group">
-        <label>القسم (الصف والمادة)</label>
-        <select id="cat">
-            <optgroup label="المرحلة الابتدائية">
-                <option value="1ب-عربي">1ب - عربي</option>
-                <option value="3ب-عربي">3ب - عربي</option>
-                <option value="6ب-عربي">6ب - عربي</option>
-            </optgroup>
-            <optgroup label="المرحلة الثانوية">
-                <option value="1ث-فيزياء">1ث - فيزياء</option>
-                <option value="3ث-تاريخ">3ث - تاريخ</option>
-                <option value="3ث-جغرافيا">3ث - جغرافيا</option>
-            </optgroup>
-        </select>
-    </div>
+    <script>
+        const ADMIN_PASS = "12123";
+        const firebaseURL = "https://helmy-5b222-default-rtdb.firebaseio.com/tests.json";
 
-    <div class="form-group">
-        <label>النوع</label>
-        <select id="type">
-            <option value="pdf">📄 ملف PDF (مذكرة)</option>
-            <option value="link">🌐 رابط (امتحان أونلاين)</option>
-        </select>
-    </div>
-
-    <button class="btn-submit" id="submitBtn" onclick="addEntry()">رفع البيانات الآن ✅</button>
-    <div id="status" class="status"></div>
-</div>
-
-<script>
-    // رابط فايربيز الخاص بك
-    const firebaseURL = "https://helmy-5b222-default-rtdb.firebaseio.com/tests.json";
-
-    function addEntry() {
-        const title = document.getElementById('title').value.trim();
-        const url = document.getElementById('url').value.trim();
-        const cat = document.getElementById('cat').value;
-        const type = document.getElementById('type').value;
-        const status = document.getElementById('status');
-        const btn = document.getElementById('submitBtn');
-
-        if(!title || !url) {
-            alert("برجاء إدخال كافة البيانات المطلوبة!");
-            return;
+        function unlock() { 
+            if(document.getElementById('passInput').value === ADMIN_PASS) { 
+                document.getElementById('loginOverlay').style.display = 'none'; 
+                loadData();
+            } else { alert("الباسورد غلط!"); } 
         }
 
-        status.innerHTML = "جاري الحفظ في فايربيز... ⏳";
-        status.style.color = "orange";
-        btn.disabled = true;
+        function saveToFirebase() {
+            const cat = document.getElementById('examCatInput').value;
+            const type = document.getElementById('examType').value;
+            const title = document.getElementById('examTitle').value.trim();
+            const url = document.getElementById('examUrl').value.trim();
+            const status = document.getElementById('status');
 
-        const data = { title, url, cat, type, date: new Date().getTime() };
+            if(!cat || !title || !url) return alert("اكمل البيانات");
+            
+            status.innerText = "جاري الرفع... ⏳";
+            const data = { cat, type, title, url, time: new Date().getTime() };
 
-        fetch(firebaseURL, {
-            method: 'POST',
-            body: JSON.stringify(data)
-        })
-        .then(res => {
-            if(res.ok) {
-                status.innerHTML = "تم بنجاح! الرابط متاح للطلاب الآن 🎉";
-                status.style.color = "green";
-                document.getElementById('title').value = '';
-                document.getElementById('url').value = '';
-            }
-        })
-        .catch(err => {
-            status.innerHTML = "حدث خطأ! تأكد من الإنترنت.";
-            status.style.color = "red";
-        })
-        .finally(() => btn.disabled = false);
-    }
-</script>
+            fetch(firebaseURL, {
+                method: 'POST',
+                body: JSON.stringify(data)
+            }).then(() => {
+                status.innerText = "✅ تم النشر بنجاح!";
+                document.getElementById('examTitle').value = "";
+                document.getElementById('examUrl').value = "";
+                loadData();
+            });
+        }
+
+        function loadData() {
+            const body = document.getElementById('examListBody');
+            body.innerHTML = "<tr><td colspan='4'>جاري تحميل البيانات...</td></tr>";
+            
+            fetch(firebaseURL).then(res => res.json()).then(data => {
+                body.innerHTML = "";
+                if(!data) return;
+                Object.keys(data).forEach(id => {
+                    const item = data[id];
+                    body.innerHTML += `<tr>
+                        <td>${item.cat}</td>
+                        <td>${item.type}</td>
+                        <td>${item.title}</td>
+                        <td><button class="btn btn-del" onclick="deleteItem('${id}')">حذف</button></td>
+                    </tr>`;
+                });
+            });
+        }
+
+        function deleteItem(id) {
+            if(!confirm("هل أنت متأكد من الحذف؟")) return;
+            fetch(`https://helmy-5b222-default-rtdb.firebaseio.com/tests/${id}.json`, { method: 'DELETE' })
+            .then(() => loadData());
+        }
+    </script>
 </body>
 </html>
