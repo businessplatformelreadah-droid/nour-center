@@ -4,8 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>تتبع اشتراكاتك | حلم نور</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800&display=swap" rel="stylesheet">
@@ -24,12 +23,12 @@
     </div>
 
     <script>
-        // إعداد Firebase
-        const firebaseConfig = { databaseURL: "https://helmnour-academy-default-rtdb.firebaseio.com/" };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        // إعداد Supabase
+        const SUPABASE_URL = 'https://viutmpktcgceyofuxmus.supabase.co'; 
+        const SUPABASE_KEY = 'sb_publishable_QoIPp4IFBEdES90fNOqbKg_6kIF0GeO';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        function checkStatus() {
+        async function checkStatus() {
             const phone = document.getElementById('searchPhone').value.trim();
             const resultsArea = document.getElementById('resultsArea');
 
@@ -38,57 +37,63 @@
                 return;
             }
 
-            resultsArea.innerHTML = "<p>جاري البحث في السيرفر... 🔄</p>";
+            resultsArea.innerHTML = "<p>جاري البحث في السيرفر الجديد... 🔄</p>";
 
-            // 1. البحث عن اشتراكات الطالب في Firebase
-            db.ref('user_subscriptions/' + phone).once('value', (snap) => {
-                const subs = snap.val();
-                
-                if (!subs) {
+            try {
+                // 1. البحث عن اشتراكات الطالب في جدول user_subscriptions
+                const { data: subs, error: subError } = await supabaseClient
+                    .from('user_subscriptions')
+                    .select('*')
+                    .eq('phone', String(phone));
+
+                if (subError) throw subError;
+
+                if (!subs || subs.length === 0) {
                     resultsArea.innerHTML = `
                         <div style="background:#ffebee; color:#c62828; padding:15px; border-radius:10px;">
                             لا توجد اشتراكات مفعلة لهذا الرقم حالياً. 
-                            <br><small>لو لسه محول، انتظر موافقة الإدارة.</small>
+                            <br><small>تأكد من الرقم، أو انتظر موافقة الإدارة لو كنت حولت حديثاً.</small>
                         </div>`;
                     return;
                 }
 
                 resultsArea.innerHTML = "<h3>حصصك المتاحة حالياً:</h3>";
 
-                // 2. لكل قسم مشترك فيه الطالب، هنجيب الحصص بتاعته
-                for (let category in subs) {
-                    if (subs[category] === true) {
-                        displayCategoryLessons(category, resultsArea);
-                    }
+                // 2. لكل اشتراك موجود، نجيب الدروس بتاعته من جدول lessons
+                for (let sub of subs) {
+                    await displayCategoryLessons(sub.category, resultsArea);
                 }
-            });
+
+            } catch (err) {
+                console.error("Error:", err);
+                resultsArea.innerHTML = "<p style='color:red'>حدث خطأ أثناء الاتصال بالسيرفر</p>";
+            }
         }
 
-        function displayCategoryLessons(category, container) {
+        async function displayCategoryLessons(category, container) {
             // إنشاء صندوق للقسم
             const sectionBox = document.createElement('div');
             sectionBox.style = "background:#f1f8ff; padding:15px; border-radius:15px; margin-bottom:15px; border:2px solid #3498db; text-align:right;";
             sectionBox.innerHTML = `<h3 style="margin:0 0 10px 0; color:#2c3e50; font-size:18px;">✅ قسم: ${category}</h3>`;
             container.appendChild(sectionBox);
 
-            // جلب الفيديوهات من السيرفر للقسم ده
-            db.ref('lessons/' + category).once('value', (snap) => {
-                const lessons = snap.val();
-                if (lessons) {
-                    let index = 1;
-                    for (let id in lessons) {
-                        const video = lessons[id];
-                        sectionBox.innerHTML += `
-                            <button class='btn-main-hero' style="background:#3498db; width:100%; margin-bottom:8px; padding:10px; font-size:15px;" 
-                                onclick="location.href='video-player.html?video=${encodeURIComponent(video.url)}&title=${encodeURIComponent(video.title)}'">
-                                🎬 حصة (${index}): ${video.title}
-                            </button>`;
-                        index++;
-                    }
-                } else {
-                    sectionBox.innerHTML += `<p style='color:#666; font-size:14px; margin:0;'>الاشتراك مفعل، وجاري رفع الحصص لهذا القسم...</p>`;
-                }
-            });
+            // جلب الفيديوهات من سوبابيز للقسم ده بالظبط
+            const { data: lessons, error: lessonError } = await supabaseClient
+                .from('lessons')
+                .select('*')
+                .eq('category', category);
+
+            if (lessons && lessons.length > 0) {
+                lessons.forEach((video, index) => {
+                    sectionBox.innerHTML += `
+                        <button class='btn-main-hero' style="background:#3498db; width:100%; margin-bottom:8px; padding:10px; font-size:15px; border:none; color:white; border-radius:8px; cursor:pointer;" 
+                            onclick="location.href='video-player.html?video=${encodeURIComponent(video.url)}&title=${encodeURIComponent(video.title)}'">
+                            🎬 حصة (${index + 1}): ${video.title}
+                        </button>`;
+                });
+            } else {
+                sectionBox.innerHTML += `<p style='color:#666; font-size:14px; margin:0;'>الاشتراك مفعل، وجاري رفع الحصص لهذا القسم من قبل الإدارة...</p>`;
+            }
         }
     </script>
 </body>
