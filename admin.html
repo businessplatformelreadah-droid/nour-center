@@ -28,6 +28,8 @@
         .btn-view { background: var(--accent); }
         #imgModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 11000; justify-content: center; align-items: center; }
         #imgModal img { max-width: 90%; max-height: 85%; border: 5px solid white; border-radius: 10px; }
+        .btn-home { text-decoration: none; color: var(--main); font-weight: bold; border: 1px solid #ddd; padding: 8px 15px; border-radius: 10px; transition: 0.3s; }
+        .btn-home:hover { background: #eee; }
     </style>
 </head>
 <body>
@@ -47,7 +49,7 @@
         </div>
 
         <div class="card">
-            <h2>🎥 رفع فيديو جديد</h2>
+            <h2>🎥 رفع فيديو جديد (الحصص)</h2>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
                 <div>
                     <label>القسم المخصص:</label>
@@ -153,13 +155,12 @@
     <div id="imgModal" onclick="this.style.display='none'"><img id="modalImg" src=""></div>
 
 <script>
-    // بيانات الربط الأساسية
+    // بيانات الربط الأساسية (نفس البيانات الخاصة بك)
     const ADMIN_PASS = "12123";
     const SUPABASE_URL = 'https://viutmpktcgceyofuxmus.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_QoIPp4IFBEdES90fNOqbKg_6kIF0GeO';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // دالة فتح لوحة التحكم
     function unlock() {
         if(document.getElementById('passInput').value === ADMIN_PASS) {
             document.getElementById('loginOverlay').style.display = 'none';
@@ -169,49 +170,63 @@
         }
     }
 
-    // دالة تحديث كافة البيانات في الصفحة
     async function renderAll() {
         renderRequests();
         renderActiveUsers();
-        renderVideos();
+        renderVideos(); // تحديث فيديوهات الحصص
         renderExams();
     }
 
-    // --- إدارة الفيديوهات ---
+    // --- إدارة فيديوهات الحصص (جدول lessons) ---
     async function saveVideo() {
         const cat = document.getElementById('catInput').value;
         const name = document.getElementById('lessonName').value.trim();
         const url = document.getElementById('videoUrl').value.trim();
+        
         if(!cat || !name || !url) return alert("يرجى إكمال كافة بيانات الفيديو");
         
-        const { error } = await supabaseClient.from('lessons').insert([{ category: cat, title: name, url: url }]);
+        // النشر في جدول lessons
+        const { error } = await supabaseClient.from('lessons').insert([{ 
+            category: cat, 
+            title: name, 
+            url: url 
+        }]);
+
         if(!error) { 
-            alert("✅ تم نشر الفيديو بنجاح!"); 
+            alert("✅ تم نشر فيديو الحصة بنجاح!"); 
+            document.getElementById('lessonName').value = "";
+            document.getElementById('videoUrl').value = "";
             renderVideos(); 
         } else {
-            alert("خطأ في النشر: " + error.message);
+            alert("خطأ في النشر لجدول lessons: " + error.message);
         }
     }
 
     async function renderVideos() {
         const vBody = document.getElementById('videoListBody');
-        let { data } = await supabaseClient.from('lessons').select('*');
+        let { data, error } = await supabaseClient.from('lessons').select('*').order('id', { ascending: false });
+        
+        if(error) {
+            vBody.innerHTML = "<tr><td colspan='3'>خطأ في تحميل الفيديوهات</td></tr>";
+            return;
+        }
+
         vBody.innerHTML = data?.map(v => `
             <tr>
                 <td>${v.category}</td>
                 <td>${v.title}</td>
                 <td><button class="btn btn-del" onclick="deleteVideo(${v.id})">حذف 🗑️</button></td>
-            </tr>`).join('') || "";
+            </tr>`).join('') || "<tr><td colspan='3'>لا توجد فيديوهات حالياً</td></tr>";
     }
 
     async function deleteVideo(id) {
-        if(confirm('هل أنت متأكد من حذف هذا الفيديو؟')) { 
+        if(confirm('هل أنت متأكد من حذف هذا الفيديو من الحصص؟')) { 
             await supabaseClient.from('lessons').delete().eq('id', id); 
             renderVideos(); 
         }
     }
 
-    // --- إدارة الاختبارات والملفات ---
+    // --- إدارة الاختبارات (جدول exams_data) ---
     async function addExam() {
         const cat = document.getElementById('examCat').value;
         const type = document.getElementById('examType').value;
@@ -230,7 +245,7 @@
 
     async function renderExams() {
         const eBody = document.getElementById('examListBody');
-        let { data } = await supabaseClient.from('exams_data').select('*');
+        let { data } = await supabaseClient.from('exams_data').select('*').order('id', { ascending: false });
         eBody.innerHTML = data?.map(ex => `
             <tr>
                 <td>${ex.category}</td>
@@ -248,7 +263,7 @@
         }
     }
 
-    // --- إدارة طلبات الاشتراك (الحل لمشكلة زر القبول) ---
+    // --- إدارة طلبات الاشتراك ---
     async function renderRequests() {
         const rBody = document.getElementById('requestBody');
         let { data: reqs, error } = await supabaseClient.from('course_requests').select('*');
@@ -272,32 +287,17 @@
     }
 
     async function approveUser(id, phone, category) {
-        // الخطوة 1: إضافة الطالب لجدول المشتركين
         const { error: insertError } = await supabaseClient
             .from('user_subscriptions')
-            .insert([{ 
-                phone: String(phone), 
-                category: category 
-            }]);
+            .insert([{ phone: String(phone), category: category }]);
 
         if (insertError) {
-            console.error("Insert Error:", insertError);
-            alert("فشل في إضافة الطالب لجدول المشتركين: " + insertError.message);
-            return; // توقف لو في خطأ في الإضافة
+            alert("فشل في إضافة الطالب: " + insertError.message);
+            return;
         }
 
-        // الخطوة 2: حذف الطلب من جدول الطلبات بعد التأكد من الإضافة
-        const { error: deleteError } = await supabaseClient
-            .from('course_requests')
-            .delete()
-            .eq('id', id);
-
-        if (deleteError) {
-            alert("تمت الإضافة ولكن فشل حذف الطلب القديم من القائمة");
-        } else {
-            alert("✅ تم قبول الطالب ونقله لقائمة المشتركين بنجاح");
-        }
-        
+        await supabaseClient.from('course_requests').delete().eq('id', id);
+        alert("✅ تم قبول الطالب بنجاح");
         renderAll();
     }
 
@@ -308,7 +308,6 @@
         }
     }
 
-    // --- إدارة المشتركين النشطين ---
     async function renderActiveUsers() {
         const uBody = document.getElementById('userListBody');
         let { data: subs } = await supabaseClient.from('user_subscriptions').select('*');
@@ -322,13 +321,12 @@
     }
 
     async function kickUser(id) {
-        if(confirm('هل تريد حذف هذا المشترك؟ لن يتمكن من دخول القسم مرة أخرى.')) { 
+        if(confirm('هل تريد حذف هذا المشترك؟')) { 
             await supabaseClient.from('user_subscriptions').delete().eq('id', id); 
             renderActiveUsers(); 
         }
     }
 
-    // معاينة الصور
     function showImg(src) { 
         document.getElementById('modalImg').src = src; 
         document.getElementById('imgModal').style.display = 'flex'; 
