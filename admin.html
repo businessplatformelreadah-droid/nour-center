@@ -86,7 +86,7 @@
                         <option value="">-- اختر القسم الدراسي والمادة --</option>
                         <optgroup label="📘 الصف الأول الابتدائي"><option value="1ب-اللغة العربية">1ب - اللغة العربية</option><option value="1ب-الرياضيات">1ب - الرياضيات</option><option value="1ب-اللغة الإنجليزية">1ب - اللغة الإنجليزية</option></optgroup>
                         <optgroup label="📗 الصف الثاني الابتدائي"><option value="2ب-اللغة العربية">2ب - اللغة العربية</option><option value="2ب-الرياضيات">2ب - الرياضيات</option><option value="2ب-اللغة الإنجليزية">2ب - اللغة الإنجليزية</option></optgroup>
-                        <optgroup label="📙 الصف الثالث الابتدائي"><option value="3ب-اللغة العربية">3ب - اللغة العربية</option><option value="3ب-الرياضيات">3ب - الرياضيات</option><option value="3ب-اللغة الإنجليزية">3ب - اللغة الإنجليزية</option><option value="3ب-التربية الدينية">3ب - التربية الدينية</option><option value="3ب-الدراسات الاجتماعية">3ب - الدراسات الاجتماعية</option><option value="3ب-العلوم">3ب - العلوم</option></optgroup>
+                        <optgroup label="📙 الصف الثالث الابتدائي"><option value="3ب-اللغة العربية">3ب - اللغة العربية</option><option value="3ب-الرياضيات">3ب - الرياضيات</option><option value="3ب-اللغة الإنجليزية">3ب - اللغة الإنجليزية</option><option value="3ب-الدراسات الاجتماعية">3ب - الدراسات الاجتماعية</option><option value="3ب-العلوم">3ب - العلوم</option></optgroup>
                         <optgroup label="📕 الصف الرابع الابتدائي"><option value="4ب-اللغة العربية">4ب - اللغة العربية</option><option value="4ب-الرياضيات">4ب - الرياضيات</option><option value="4ب-اللغة الإنجليزية">4ب - اللغة الإنجليزية</option><option value="4ب-العلوم">4ب - العلوم</option><option value="4ب-الدراسات الاجتماعية">4ب - الدراسات الاجتماعية</option></optgroup>
                         <optgroup label="📒 الصف الخامس الابتدائي"><option value="5ب-اللغة العربية">5ب - اللغة العربية</option><option value="5ب-الرياضيات">5ب - الرياضيات</option><option value="5ب-اللغة الإنجليزية">5ب - اللغة الإنجليزية</option><option value="5ب-العلوم">5ب - العلوم</option><option value="5ب-الدراسات الاجتماعية">5ب - الدراسات الاجتماعية</option></optgroup>
                         <optgroup label="📓 الصف السادس الابتدائي"><option value="6ب-اللغة العربية">6ب - اللغة العربية</option><option value="6ب-الرياضيات">6ب - الرياضيات</option><option value="6ب-اللغة الإنجليزية">6ب - اللغة الإنجليزية</option><option value="6ب-العلوم">6ب - العلوم</option><option value="6ب-الدراسات الاجتماعية">6ب - الدراسات الاجتماعية</option></optgroup>
@@ -176,15 +176,40 @@
         renderExams();
     }
 
-    // --- إدارة فيديوهات الحصص (lessons) ---
+    // --- الدالة المضافة لتنظيف روابط يوتيوب ---
+    function cleanYoutubeUrl(url) {
+        if (!url) return null;
+        url = url.trim();
+        //Regex يدعم كل صيغ اليوتيوب بما فيها الـ Share من الموبايل
+        const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+        const match = url.match(regExp);
+        if (match && match[1]) {
+            return match[1];
+        } else {
+            return url.length === 11 ? url : null;
+        }
+    }
+
+    // --- إدارة فيديوهات الحصص (lessons) المحدثة ---
     async function saveVideo() {
         const cat = document.getElementById('catInput').value;
         const name = document.getElementById('lessonName').value.trim();
-        const url = document.getElementById('videoUrl').value.trim();
+        const rawUrl = document.getElementById('videoUrl').value.trim();
         
-        if(!cat || !name || !url) return alert("يرجى إكمال كافة بيانات الفيديو");
+        if(!cat || !name || !rawUrl) return alert("يرجى إكمال كافة بيانات الفيديو");
         
-        const { error } = await supabaseClient.from('lessons').insert([{ category: cat, title: name, url: url }]);
+        // تنظيف الرابط قبل الإرسال
+        const videoId = cleanYoutubeUrl(rawUrl);
+        if(!videoId) return alert("⚠️ رابط اليوتيوب غير صحيح! تأكد من نسخ الرابط كاملاً.");
+
+        // تخزين الرابط بصيغة قياسية
+        const finalUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+        const { error } = await supabaseClient.from('lessons').insert([{ 
+            category: cat, 
+            title: name, 
+            url: finalUrl 
+        }]);
 
         if(!error) { 
             alert("✅ تم نشر فيديو الحصة بنجاح!"); 
@@ -266,13 +291,11 @@
         }
     }
 
-    // --- إدارة طلبات الاشتراك ---
+    // --- إدارة طلبات الاشتراك والطلاب (تظل كما هي) ---
     async function renderRequests() {
         const rBody = document.getElementById('requestBody');
         let { data: reqs, error } = await supabaseClient.from('course_requests').select('*').order('id', { ascending: false });
-        
         if (error) return rBody.innerHTML = "<tr><td colspan='5'>خطأ في التحميل</td></tr>";
-
         rBody.innerHTML = reqs?.map(r => `
             <tr>
                 <td>${r.name}</td>
@@ -287,12 +310,8 @@
     }
 
     async function approveUser(id, phone, category) {
-        const { error: insertError } = await supabaseClient
-            .from('user_subscriptions')
-            .insert([{ phone: String(phone), category: category }]);
-
+        const { error: insertError } = await supabaseClient.from('user_subscriptions').insert([{ phone: String(phone), category: category }]);
         if (insertError) return alert("فشل في إضافة الطالب: " + insertError.message);
-
         await supabaseClient.from('course_requests').delete().eq('id', id);
         alert("✅ تم تفعيل الاشتراك بنجاح");
         renderAll();
@@ -320,10 +339,7 @@
     async function kickUser(id) {
         if(confirm('هل تريد إلغاء اشتراك هذا الطالب؟')) { 
             const { error } = await supabaseClient.from('user_subscriptions').delete().eq('id', id); 
-            if(!error) {
-                alert("تم الإلغاء");
-                renderActiveUsers(); 
-            }
+            if(!error) { alert("تم الإلغاء"); renderActiveUsers(); }
         }
     }
 
