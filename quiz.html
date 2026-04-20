@@ -6,8 +6,7 @@
     <title>المكتبة الرقمية والاختبارات | سنتر حلم نور</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root { 
@@ -129,10 +128,10 @@
     </div>
 
     <script>
-        // إعداد Firebase
-        const firebaseConfig = { databaseURL: "https://helmnour-academy-default-rtdb.firebaseio.com/" };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        // إعداد Supabase
+        const SUPABASE_URL = 'https://viutmpktcgceyofuxmus.supabase.co'; 
+        const SUPABASE_KEY = 'sb_publishable_QoIPp4IFBEdES90fNOqbKg_6kIF0GeO';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const studyData = [
             { title: "📘 الصف الأول الابتدائي", short: "1ب", subjects: ["اللغة العربية", "الرياضيات", "اللغة الإنجليزية"] },
@@ -151,7 +150,7 @@
 
         function init() {
             const container = document.getElementById('levelsContainer');
-            container.innerHTML = ""; // تنظيف الحاوية
+            container.innerHTML = ""; 
             studyData.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'level-card';
@@ -168,10 +167,11 @@
             });
         }
 
-        function loadContent(itemKey, fullTitle) {
+        async function loadContent(itemKey, fullTitle) {
             document.getElementById('selectionArea').style.display = 'none';
             document.getElementById('resourcesArea').style.display = 'block';
             document.getElementById('selectedSubjectTitle').innerText = fullTitle;
+            document.getElementById('pageTitle').innerText = fullTitle;
             
             const pdfList = document.getElementById('pdfList');
             const linksList = document.getElementById('linksList');
@@ -179,48 +179,52 @@
             pdfList.innerHTML = "<p style='text-align:center;'>جاري فحص المكتبة... ⏳</p>";
             linksList.innerHTML = "<p style='text-align:center;'>جاري جلب الاختبارات... ⏳</p>";
 
-            // تعديل هيدر الصفحة عشان الطالب ميتوهش
-            document.getElementById('pageTitle').innerText = fullTitle;
+            try {
+                // جلب البيانات من سوبابيز من جدول exams_data
+                const { data: exams, error } = await supabaseClient
+                    .from('exams_data')
+                    .select('*')
+                    .eq('category', itemKey); // التأكد من أن العمود اسمه category في سوبابيز
 
-            // ✅ التعديل الجذري هنا: فصل الاستماع للسيرفر والتأكد من جلب أحدث البيانات
-            db.ref('exams_data').off(); // إغلاق أي استماع قديم لتجنب تكرار البيانات
-            db.ref('exams_data').on('value', (snapshot) => {
+                if (error) throw error;
+
                 pdfList.innerHTML = "";
                 linksList.innerHTML = "";
                 
                 let foundPdf = false;
                 let foundLink = false;
 
-                if (snapshot.exists()) {
-                    snapshot.forEach((childSnapshot) => {
-                        const item = childSnapshot.val();
-                        // فحص المفتاح بدقة (نفس اللي مبعوت من الإدارة)
-                        if (item.cat === itemKey) {
-                            const html = `
-                                <div class="resource-card">
-                                    <div class="info">
-                                        <div class="icon ${item.type === 'pdf' ? 'pdf-icon' : 'link-icon'}">${item.type === 'pdf' ? '📄' : '🌐'}</div>
-                                        <div class="title-text"><strong>${item.title}</strong></div>
-                                    </div>
-                                    <a href="${item.url}" target="_blank" class="action-btn ${item.type === 'pdf' ? 'pdf-btn' : 'link-btn'}">
-                                        ${item.type === 'pdf' ? '🔓 فتح الملف' : '📝 دخول الاختبار'}
-                                    </a>
-                                </div>`;
+                if (exams && exams.length > 0) {
+                    exams.forEach((item) => {
+                        const html = `
+                            <div class="resource-card">
+                                <div class="info">
+                                    <div class="icon ${item.type === 'pdf' ? 'pdf-icon' : 'link-icon'}">${item.type === 'pdf' ? '📄' : '🌐'}</div>
+                                    <div class="title-text"><strong>${item.title}</strong></div>
+                                </div>
+                                <a href="${item.url}" target="_blank" class="action-btn ${item.type === 'pdf' ? 'pdf-btn' : 'link-btn'}">
+                                    ${item.type === 'pdf' ? '🔓 فتح الملف' : '📝 دخول الاختبار'}
+                                </a>
+                            </div>`;
 
-                            if (item.type === 'pdf') {
-                                pdfList.innerHTML += html;
-                                foundPdf = true;
-                            } else {
-                                linksList.innerHTML += html;
-                                foundLink = true;
-                            }
+                        if (item.type === 'pdf') {
+                            pdfList.innerHTML += html;
+                            foundPdf = true;
+                        } else {
+                            linksList.innerHTML += html;
+                            foundLink = true;
                         }
                     });
                 }
 
                 if (!foundPdf) pdfList.innerHTML = '<div style="color:#888; text-align:center; padding:10px;">لا توجد ملفات مرفوعة حالياً.</div>';
                 if (!foundLink) linksList.innerHTML = '<div style="color:#888; text-align:center; padding:10px;">لا توجد اختبارات متاحة حالياً.</div>';
-            });
+
+            } catch (err) {
+                console.error("Supabase Error:", err.message);
+                pdfList.innerHTML = "<p style='color:red; text-align:center;'>خطأ في الاتصال بالسيرفر</p>";
+                linksList.innerHTML = "";
+            }
 
             window.scrollTo({top: 0, behavior: 'smooth'});
         }

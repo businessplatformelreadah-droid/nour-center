@@ -3,8 +3,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مشغل أكاديمية حلم نور</title>
+    <title>مشغل أكاديمية حلم نور | الحماية القصوى</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --main: #2c3e50; --accent: #3498db; --danger: #e74c3c; --time-bg: #1a252f; }
@@ -13,7 +12,6 @@
         .player-container { max-width: 900px; margin: auto; background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         .lesson-header { text-align: center; padding: 15px; background: #fff; color: var(--main); margin: 0; border-bottom: 1px solid #eee; font-size: 1.2rem; }
 
-        /* منطقة الفيديو مع الطبقة الحامية */
         .video-clipper {
             position: relative; 
             width: 100%; 
@@ -29,15 +27,13 @@
             border: none;
         }
 
-        /* الطبقة الشفافة العازلة (الدرع) */
+        /* الطبقة الشفافة - تم تقليل الـ z-index قليلاً لضمان عدم التداخل مع أوامر التشغيل البرمجية */
         .video-shield {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10; /* فوق الفيديو */
-            background: rgba(0,0,0,0); /* شفافة تماماً */
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 5;
+            background: rgba(0,0,0,0);
             cursor: default;
         }
 
@@ -47,13 +43,14 @@
         .time-counter {
             background: var(--time-bg); color: #00ffcc; padding: 8px 15px; border-radius: 8px;
             font-family: 'Courier New', monospace; font-weight: bold; font-size: 1.1rem;
-            border: 1px solid #34495e; direction: ltr; min-width: 125px; text-align: center;
+            border: 1px solid #34495e; direction: ltr; min-width: 130px; text-align: center;
         }
 
-        .control-btn { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; transition: 0.2s; }
-        .control-btn:hover { background: #2980b9; transform: scale(1.05); }
+        .control-btn { background: var(--accent); color: white; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; transition: 0.2s; font-size: 16px; }
+        .control-btn:active { transform: scale(0.95); }
+        .control-btn:hover { background: #2980b9; }
 
-        .volume-container { display: flex; align-items: center; gap: 12px; color: white; }
+        .volume-container { display: flex; align-items: center; gap: 12px; color: white; margin-top: 5px; }
         input[type=range] { cursor: pointer; width: 150px; }
         .error-msg { background: #fff5f5; color: var(--danger); padding: 40px 20px; text-align: center; border: 2px dashed var(--danger); margin: 20px; border-radius: 15px; }
     </style>
@@ -61,7 +58,7 @@
 <body>
 
     <div class="player-container">
-        <h2 class="lesson-header" id="lessonTitle">جاري تحضير الحصة...</h2>
+        <h2 class="lesson-header" id="lessonTitle">جاري تحميل بيانات الحصة...</h2>
         
         <div id="playerArea">
             <div class="video-clipper">
@@ -74,9 +71,9 @@
             <div class="buttons-group">
                 <button class="control-btn" onclick="playVid()">▶️ تشغيل</button>
                 <button class="control-btn" onclick="pauseVid()" style="background:var(--danger);">⏸️ إيقاف</button>
-                <button class="control-btn" onclick="seek(-10)">⏪ -10ث</button>
+                <button class="control-btn" onclick="seek(-10)">⏪ 10ث</button>
                 <div class="time-counter" id="timerDisplay">00:00 / 00:00</div>
-                <button class="control-btn" onclick="seek(10)">⏩ +10ث</button>
+                <button class="control-btn" onclick="seek(10)">⏩ 10ث</button>
                 <button class="control-btn" onclick="window.history.back()" style="background:#7f8c8d;">🔙 خروج</button>
             </div>
 
@@ -92,10 +89,75 @@
     <script>
         let player;
         const urlParams = new URLSearchParams(window.location.search);
-        let videoUrlFromParam = urlParams.get('video');
-        let lessonName = urlParams.get('title') ? decodeURIComponent(urlParams.get('title')) : "مشاهدة الحصة";
+        let rawVideoUrl = urlParams.get('video');
+        let lessonName = urlParams.get('title') ? decodeURIComponent(urlParams.get('title')) : "مشاهدة الحصة التعليمية";
 
         document.getElementById('lessonTitle').innerText = lessonName;
+
+        // دالة استخراج الـ ID المطورة
+        function extractYoutubeId(url) {
+            if (!url) return null;
+            url = decodeURIComponent(url);
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            if (match && match[2].length === 11) {
+                return match[2];
+            } else {
+                // لو الرابط اللي مبعوت هو الـ ID نفسه
+                return url.length === 11 ? url : null;
+            }
+        }
+
+        // تحميل مكتبة يوتيوب
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        window.onYouTubeIframeAPIReady = function() {
+            let vId = extractYoutubeId(rawVideoUrl);
+            
+            if (!vId) {
+                document.getElementById('playerArea').innerHTML = `
+                    <div class="error-msg">
+                        <h3>⚠️ خطأ في رابط الحصة</h3>
+                        <p>تأكد من رفع رابط يوتيوب صحيح من لوحة الإدارة.</p>
+                    </div>`;
+                return;
+            }
+
+            player = new YT.Player('mainVideo', {
+                videoId: vId,
+                playerVars: {
+                    'autoplay': 0,
+                    'controls': 0,
+                    'rel': 0,
+                    'showinfo': 0,
+                    'modestbranding': 1,
+                    'iv_load_policy': 3,
+                    'disablekb': 1,
+                    'fs': 0,
+                    'playsinline': 1
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onError': onPlayerError
+                }
+            });
+        };
+
+        function onPlayerReady(event) {
+            setInterval(updateTimer, 1000);
+        }
+
+        function onPlayerError(e) {
+            console.error("Youtube API Error:", e);
+            document.getElementById('playerArea').innerHTML = `
+                <div class="error-msg">
+                    <h3>❌ الفيديو غير متاح</h3>
+                    <p>تأكد من أن الفيديو "عام" أو "غير مدرج" ومفعل به خيار "التضمين".</p>
+                </div>`;
+        }
 
         function formatTime(seconds) {
             let mins = Math.floor(seconds / 60);
@@ -113,39 +175,15 @@
             }
         }
 
-        function getYoutubeId(url) {
-            if(!url) return null;
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : url;
-        }
-
-        window.onYouTubeIframeAPIReady = function() {
-            let videoId = getYoutubeId(decodeURIComponent(videoUrlFromParam));
-            if (!videoId) {
-                document.getElementById('playerArea').innerHTML = `<div class="error-msg"><h3>⚠️ عذراً، لم نجد رابط الفيديو!</h3></div>`;
-                return;
-            }
-
-            player = new YT.Player('mainVideo', {
-                height: '100%', width: '100%', videoId: videoId,
-                playerVars: {
-                    'controls': 0, 'modestbranding': 1, 'rel': 0, 'showinfo': 0,
-                    'disablekb': 1, 'iv_load_policy': 3, 'fs': 0,
-                    'origin': window.location.origin
-                },
-                events: { 'onReady': (event) => { setInterval(updateTimer, 1000); } }
-            });
-        };
-
         function playVid() { if(player && player.playVideo) player.playVideo(); }
         function pauseVid() { if(player && player.pauseVideo) player.pauseVideo(); }
+        
         function seek(seconds) {
             if(player && player.getCurrentTime) {
                 player.seekTo(player.getCurrentTime() + seconds, true);
-                setTimeout(updateTimer, 100);
             }
         }
+        
         function changeVolume(val) {
             if(player && player.setVolume) {
                 player.setVolume(val);
@@ -153,11 +191,11 @@
             }
         }
 
+        // منع السرقة والفحص
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.onkeydown = function(e) {
             if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73) || (e.ctrlKey && e.keyCode == 85)) return false;
         };
     </script>
-    <script src="https://www.youtube.com/iframe_api"></script>
 </body>
 </html>
