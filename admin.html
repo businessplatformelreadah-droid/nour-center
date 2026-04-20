@@ -86,7 +86,7 @@
                         <option value="">-- اختر القسم الدراسي والمادة --</option>
                         <optgroup label="📘 الصف الأول الابتدائي"><option value="1ب-اللغة العربية">1ب - اللغة العربية</option><option value="1ب-الرياضيات">1ب - الرياضيات</option><option value="1ب-اللغة الإنجليزية">1ب - اللغة الإنجليزية</option></optgroup>
                         <optgroup label="📗 الصف الثاني الابتدائي"><option value="2ب-اللغة العربية">2ب - اللغة العربية</option><option value="2ب-الرياضيات">2ب - الرياضيات</option><option value="2ب-اللغة الإنجليزية">2ب - اللغة الإنجليزية</option></optgroup>
-                        <optgroup label="📙 الصف الثالث الابتدائي"><option value="3ب-اللغة العربية">3ب - اللغة العربية</option><option value="3ب-الرياضيات">3ب - الرياضيات</option><option value="3ب-اللغة الإنجليزية">3ب - اللغة الإنجليزية</option><option value="3ب-الدراسات الاجتماعية">3ب - الدراسات الاجتماعية</option><option value="3ب-العلوم">3ب - العلوم</option></optgroup>
+                        <optgroup label="📙 الصف الثالث الابتدائي"><option value="3ب-اللغة العربية">3ب - اللغة العربية</option><option value="3ب-الرياضيات">3ب - الرياضيات</option><option value="3ب-اللغة الإنجليزية">3ب - اللغة الإنجليزية</option><option value="3ب-التربية الدينية">3ب - التربية الدينية</option><option value="3ب-الدراسات الاجتماعية">3ب - الدراسات الاجتماعية</option><option value="3ب-العلوم">3ب - العلوم</option></optgroup>
                         <optgroup label="📕 الصف الرابع الابتدائي"><option value="4ب-اللغة العربية">4ب - اللغة العربية</option><option value="4ب-الرياضيات">4ب - الرياضيات</option><option value="4ب-اللغة الإنجليزية">4ب - اللغة الإنجليزية</option><option value="4ب-العلوم">4ب - العلوم</option><option value="4ب-الدراسات الاجتماعية">4ب - الدراسات الاجتماعية</option></optgroup>
                         <optgroup label="📒 الصف الخامس الابتدائي"><option value="5ب-اللغة العربية">5ب - اللغة العربية</option><option value="5ب-الرياضيات">5ب - الرياضيات</option><option value="5ب-اللغة الإنجليزية">5ب - اللغة الإنجليزية</option><option value="5ب-العلوم">5ب - العلوم</option><option value="5ب-الدراسات الاجتماعية">5ب - الدراسات الاجتماعية</option></optgroup>
                         <optgroup label="📓 الصف السادس الابتدائي"><option value="6ب-اللغة العربية">6ب - اللغة العربية</option><option value="6ب-الرياضيات">6ب - الرياضيات</option><option value="6ب-اللغة الإنجليزية">6ب - اللغة الإنجليزية</option><option value="6ب-العلوم">6ب - العلوم</option><option value="6ب-الدراسات الاجتماعية">6ب - الدراسات الاجتماعية</option></optgroup>
@@ -176,16 +176,26 @@
         renderExams();
     }
 
-    // --- الدالة المضافة لتنظيف روابط يوتيوب ---
+    // --- الدالة الذكية لاستخراج الـ ID من أي شكل لرابط يوتيوب ---
     function cleanYoutubeUrl(url) {
         if (!url) return null;
         url = url.trim();
-        //Regex يدعم كل صيغ اليوتيوب بما فيها الـ Share من الموبايل
-        const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+        // Regex يدعم الروابط العادية، المختصرة، الشورتس، وروابط الموبايل
+        const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
         const match = url.match(regExp);
-        if (match && match[1]) {
-            return match[1];
+        
+        if (match && match[7].length === 11) {
+            return match[7];
         } else {
+            // محاولة إضافية لروابط الشورتس الصعبة
+            if (url.includes('shorts/')) {
+                const parts = url.split('shorts/');
+                if(parts[1]) {
+                    const id = parts[1].split(/[?&]/)[0];
+                    if(id.length === 11) return id;
+                }
+            }
+            // لو المستخدم دخل الـ ID مباشرة
             return url.length === 11 ? url : null;
         }
     }
@@ -198,17 +208,17 @@
         
         if(!cat || !name || !rawUrl) return alert("يرجى إكمال كافة بيانات الفيديو");
         
-        // تنظيف الرابط قبل الإرسال
         const videoId = cleanYoutubeUrl(rawUrl);
-        if(!videoId) return alert("⚠️ رابط اليوتيوب غير صحيح! تأكد من نسخ الرابط كاملاً.");
+        
+        if(!videoId) {
+            return alert("⚠️ رابط اليوتيوب غير صحيح أو غير مدعوم!");
+        }
 
-        // تخزين الرابط بصيغة قياسية
-        const finalUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
+        // تخزين الـ ID فقط لضمان عمل المشغل
         const { error } = await supabaseClient.from('lessons').insert([{ 
             category: cat, 
             title: name, 
-            url: finalUrl 
+            url: videoId 
         }]);
 
         if(!error) { 
@@ -224,9 +234,7 @@
     async function renderVideos() {
         const vBody = document.getElementById('videoListBody');
         let { data, error } = await supabaseClient.from('lessons').select('*').order('id', { ascending: false });
-        
         if(error) return vBody.innerHTML = "<tr><td colspan='3'>خطأ في التحميل</td></tr>";
-
         vBody.innerHTML = data?.map(v => `
             <tr>
                 <td>${v.category}</td>
@@ -238,31 +246,22 @@
     async function deleteVideo(id) {
         if(confirm('هل أنت متأكد من حذف هذا الفيديو؟')) { 
             const { error } = await supabaseClient.from('lessons').delete().eq('id', id); 
-            if(!error) {
-                alert("تم الحذف بنجاح");
-                renderVideos(); 
-            } else {
-                alert("فشل الحذف: " + error.message);
-            }
+            if(!error) { renderVideos(); }
         }
     }
 
-    // --- إدارة الاختبارات (exams_data) ---
     async function addExam() {
         const cat = document.getElementById('examCat').value;
         const type = document.getElementById('examType').value;
         const title = document.getElementById('examTitle').value.trim();
         const url = document.getElementById('examUrl').value.trim();
         if(!cat || !title || !url) return alert("يرجى إكمال بيانات الاختبار");
-
         const { error } = await supabaseClient.from('exams_data').insert([{ category: cat, type: type, title: title, url: url }]);
         if(!error) { 
             alert("✅ تم نشر الاختبار بنجاح!"); 
             document.getElementById('examTitle').value = "";
             document.getElementById('examUrl').value = "";
             renderExams(); 
-        } else {
-            alert("خطأ: " + error.message);
         }
     }
 
@@ -281,21 +280,15 @@
 
     async function deleteExam(id) {
         if(confirm('هل تريد حذف هذا الملف نهائياً؟')) { 
-            const { error } = await supabaseClient.from('exams_data').delete().eq('id', id); 
-            if(!error) {
-                alert("تم الحذف");
-                renderExams(); 
-            } else {
-                alert("فشل الحذف: " + error.message);
-            }
+            await supabaseClient.from('exams_data').delete().eq('id', id); 
+            renderExams(); 
         }
     }
 
-    // --- إدارة طلبات الاشتراك والطلاب (تظل كما هي) ---
     async function renderRequests() {
         const rBody = document.getElementById('requestBody');
         let { data: reqs, error } = await supabaseClient.from('course_requests').select('*').order('id', { ascending: false });
-        if (error) return rBody.innerHTML = "<tr><td colspan='5'>خطأ في التحميل</td></tr>";
+        if (error) return;
         rBody.innerHTML = reqs?.map(r => `
             <tr>
                 <td>${r.name}</td>
@@ -311,7 +304,7 @@
 
     async function approveUser(id, phone, category) {
         const { error: insertError } = await supabaseClient.from('user_subscriptions').insert([{ phone: String(phone), category: category }]);
-        if (insertError) return alert("فشل في إضافة الطالب: " + insertError.message);
+        if (insertError) return alert("فشل في إضافة الطالب");
         await supabaseClient.from('course_requests').delete().eq('id', id);
         alert("✅ تم تفعيل الاشتراك بنجاح");
         renderAll();
@@ -319,8 +312,8 @@
 
     async function rejectUser(id) {
         if(confirm('حذف هذا الطلب؟')) { 
-            const { error } = await supabaseClient.from('course_requests').delete().eq('id', id); 
-            if(!error) renderRequests();
+            await supabaseClient.from('course_requests').delete().eq('id', id); 
+            renderRequests();
         }
     }
 
@@ -338,8 +331,8 @@
 
     async function kickUser(id) {
         if(confirm('هل تريد إلغاء اشتراك هذا الطالب؟')) { 
-            const { error } = await supabaseClient.from('user_subscriptions').delete().eq('id', id); 
-            if(!error) { alert("تم الإلغاء"); renderActiveUsers(); }
+            await supabaseClient.from('user_subscriptions').delete().eq('id', id); 
+            renderActiveUsers(); 
         }
     }
 
