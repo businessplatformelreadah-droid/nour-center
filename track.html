@@ -29,70 +29,76 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function checkStatus() {
+            // تنظيف رقم الهاتف من أي مسافات
             const phone = document.getElementById('searchPhone').value.trim();
             const resultsArea = document.getElementById('resultsArea');
 
             if (phone.length < 11) {
-                alert("برجاء إدخال رقم موبايل صحيح");
+                alert("برجاء إدخال رقم موبايل صحيح مكون من 11 رقم");
                 return;
             }
 
-            resultsArea.innerHTML = "<p>جاري البحث في السيرفر الجديد... 🔄</p>";
+            resultsArea.innerHTML = "<p style='color: var(--accent);'>جاري فحص الاشتراكات... 🔄</p>";
 
             try {
-                // 1. البحث عن اشتراكات الطالب في جدول user_subscriptions
+                // 1. البحث عن اشتراكات الطالب
                 const { data: subs, error: subError } = await supabaseClient
                     .from('user_subscriptions')
                     .select('*')
-                    .eq('phone', String(phone));
+                    .eq('phone', phone);
 
                 if (subError) throw subError;
 
                 if (!subs || subs.length === 0) {
                     resultsArea.innerHTML = `
-                        <div style="background:#ffebee; color:#c62828; padding:15px; border-radius:10px;">
-                            لا توجد اشتراكات مفعلة لهذا الرقم حالياً. 
-                            <br><small>تأكد من الرقم، أو انتظر موافقة الإدارة لو كنت حولت حديثاً.</small>
+                        <div style="background:#ffebee; color:#c62828; padding:15px; border-radius:10px; border: 1px solid #ef9a9a;">
+                            لا توجد اشتراكات مفعلة لهذا الرقم (<b>${phone}</b>) حالياً. 
+                            <br><small>تأكد من الرقم، أو تواصل مع الدعم الفني لتفعيل حسابك.</small>
                         </div>`;
                     return;
                 }
 
-                resultsArea.innerHTML = "<h3>حصصك المتاحة حالياً:</h3>";
+                resultsArea.innerHTML = "<h3 style='margin-bottom:15px;'>حصصك المتاحة حالياً:</h3>";
 
-                // 2. لكل اشتراك موجود، نجيب الدروس بتاعته من جدول lessons
+                // 2. عرض الدروس لكل قسم
                 for (let sub of subs) {
                     await displayCategoryLessons(sub.category, resultsArea);
                 }
 
             } catch (err) {
-                console.error("Error:", err);
-                resultsArea.innerHTML = "<p style='color:red'>حدث خطأ أثناء الاتصال بالسيرفر</p>";
+                console.error("Error details:", err);
+                resultsArea.innerHTML = "<p style='color:red'>عذراً، حدث خطأ تقني. يرجى المحاولة لاحقاً.</p>";
             }
         }
 
         async function displayCategoryLessons(category, container) {
-            // إنشاء صندوق للقسم
+            // إنشاء صندوق القسم
             const sectionBox = document.createElement('div');
-            sectionBox.style = "background:#f1f8ff; padding:15px; border-radius:15px; margin-bottom:15px; border:2px solid #3498db; text-align:right;";
-            sectionBox.innerHTML = `<h3 style="margin:0 0 10px 0; color:#2c3e50; font-size:18px;">✅ قسم: ${category}</h3>`;
+            sectionBox.className = "category-card"; // تأكد من وجود ستايل لها أو استخدم الستايل المباشر
+            sectionBox.style = "background:#f9f9f9; padding:15px; border-radius:15px; margin-bottom:15px; border-right:5px solid var(--accent); text-align:right; box-shadow: 0 2px 5px rgba(0,0,0,0.05);";
+            sectionBox.innerHTML = `<h3 style="margin:0 0 10px 0; color:#2c3e50; font-size:18px;">📚 قسم: ${category}</h3>`;
             container.appendChild(sectionBox);
 
-            // جلب الفيديوهات من سوبابيز للقسم ده بالظبط
+            // جلب الفيديوهات (استخدام trim للقسم لضمان المطابقة)
             const { data: lessons, error: lessonError } = await supabaseClient
                 .from('lessons')
                 .select('*')
-                .eq('category', category);
+                .eq('category', category.trim());
 
             if (lessons && lessons.length > 0) {
+                // ترتيب الدروس لو حابب (مثلاً بالأحدث أو بالترتيب الأبجدي)
                 lessons.forEach((video, index) => {
-                    sectionBox.innerHTML += `
-                        <button class='btn-main-hero' style="background:#3498db; width:100%; margin-bottom:8px; padding:10px; font-size:15px; border:none; color:white; border-radius:8px; cursor:pointer;" 
-                            onclick="location.href='video-player.html?video=${encodeURIComponent(video.url)}&title=${encodeURIComponent(video.title)}'">
-                            🎬 حصة (${index + 1}): ${video.title}
-                        </button>`;
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-main-hero';
+                    btn.style = "background:linear-gradient(135deg, #3498db, #2980b9); width:100%; margin-bottom:8px; padding:12px; font-size:15px; border:none; color:white; border-radius:10px; cursor:pointer; display:block; text-align:right;";
+                    btn.innerHTML = `🎬 حصة (${index + 1}): ${video.title}`;
+                    btn.onclick = () => {
+                        location.href = `video-player.html?video=${encodeURIComponent(video.url)}&title=${encodeURIComponent(video.title)}`;
+                    };
+                    sectionBox.appendChild(btn);
                 });
             } else {
-                sectionBox.innerHTML += `<p style='color:#666; font-size:14px; margin:0;'>الاشتراك مفعل، وجاري رفع الحصص لهذا القسم من قبل الإدارة...</p>`;
+                sectionBox.innerHTML += `<p style='color:#888; font-size:14px; margin:10px 0 0 0;'>مفعل، بانتظار رفع حصص هذا القسم...</p>`;
             }
         }
     </script>
