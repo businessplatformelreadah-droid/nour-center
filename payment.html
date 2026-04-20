@@ -2,7 +2,11 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta charset="UTF-8"><title>تأكيد الاشتراك - حلم نور</title><link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>تأكيد الاشتراك - حلم نور</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="container">
@@ -11,60 +15,76 @@
             <p>أنت تشترك في: <b id="courseName" style="color:var(--main-blue)">...</b></p>
             <div style="background:#fff3cd; padding:15px; border-radius:10px; font-weight:800; font-size:22px; margin-bottom:15px;">01142388621</div>
             
-            <input type="text" id="userName" placeholder="اسم الطالب الثلاثي">
+            <input type="text" id="userName" placeholder="اسم العسل الطالب الثلاثي">
             <input type="text" id="userPhone" placeholder="رقم الموبايل المحول منه" maxlength="11">
             
             <label style="display:block; margin-top:10px; color:#666; font-weight:bold;">ارفع صورة التحويل (الاسكرين):</label>
             <input type="file" id="userScreenshot" accept="image/*" style="border:none;">
             
-            <button class="btn-main-hero" style="width:100%; margin-top:20px;" onclick="sendOrder()">إرسال الطلب ✅</button>
+            <button id="sendBtn" class="btn-main-hero" style="width:100%; margin-top:20px;" onclick="sendOrder()">إرسال الطلب ✅</button>
         </div>
         <button onclick="window.history.back()" class="btn-back">⬅️ إلغاء</button>
     </div>
 
     <script>
-        const params = new URLSearchParams(window.location.search);
-        const target = decodeURIComponent(params.get('target') || "قسم عام");
-        document.getElementById('courseName').innerText = target;
+    // 1. إعدادات سوبابيز (تم تحديث الرابط بالـ ID الصحيح لمشروعك)
+    const SUPABASE_URL = 'https://viutmpktcgceyofuxmus.supabase.co'; 
+    const SUPABASE_KEY = 'sb_publishable_QoIPp4IFBEdES90fNOqbKg_6kIF0GeO';
+    
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        function sendOrder() {
-            const name = document.getElementById('userName').value;
-            const phone = document.getElementById('userPhone').value;
-            const fileInput = document.getElementById('userScreenshot');
+    // 2. جلب اسم المادة من الرابط (Target)
+    const params = new URLSearchParams(window.location.search);
+    const target = decodeURIComponent(params.get('target') || "قسم عام");
+    document.getElementById('courseName').innerText = target;
 
-            if(!name || phone.length < 11 || !fileInput.files[0]) { 
-                alert("يا بطل اكتب اسمك ورقمك وارفع صورة الوصل!"); 
-                return; 
-            }
+    // 3. دالة إرسال الطلب للسيرفر
+    async function sendOrder() {
+        const name = document.getElementById('userName').value.trim();
+        const phone = document.getElementById('userPhone').value.trim();
+        const fileInput = document.getElementById('userScreenshot');
+        const btn = document.getElementById('sendBtn');
 
-            // قراءة الصورة وتحويلها لرابط (Base64) عشان تظهر في صفحة الإدارة
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64Img = e.target.result;
-
-                // 1. الحفظ عشان صفحة (تتبع طلبي) تفضل شغالة زي ما هي
-                localStorage.setItem('user_auth_' + phone, JSON.stringify({ 
-                    phone: phone, 
-                    targetName: target, 
-                    status: 'pending' 
-                }));
-
-                // 2. الحفظ في الصندوق اللي صفحة (الإدارة) بتفتح منه الطلبات
-                let allRequests = JSON.parse(localStorage.getItem('course_requests')) || [];
-                allRequests.push({
-                    name: name,
-                    phone: phone,
-                    category: target,
-                    screen: base64Img, // صورة الوصل اللي هتشوفها في الإدارة
-                    date: new Date().toLocaleString()
-                });
-                localStorage.setItem('course_requests', JSON.stringify(allRequests));
-
-                alert("تم إرسال طلبك بنجاح! تابع حالة التفعيل من صفحة تتبع الطلب.");
-                window.location.href = 'track.html';
-            };
-            reader.readAsDataURL(fileInput.files[0]);
+        // التحقق من البيانات
+        if(!name || phone.length < 11 || !fileInput.files[0]) { 
+            alert("يا بطل اكتب اسمك ورقمك وارفع صورة الوصل!"); 
+            return; 
         }
-    </script>
+
+        btn.disabled = true;
+        btn.innerText = "جاري الإرسال للسيرفر... ⏳";
+
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const base64Img = e.target.result;
+
+            try {
+                // إرسال البيانات لجدول course_requests
+                const { data, error } = await supabaseClient
+                    .from('course_requests')
+                    .insert([
+                        { 
+                            name: name, 
+                            phone: phone, 
+                            category: target, 
+                            screen: base64Img 
+                        }
+                    ]);
+
+                if (error) throw error;
+
+                alert("✅ وصل يا وحش! الطلب دلوقتي في سوبابيز");
+                window.location.href = 'track.html';
+
+            } catch (err) {
+                console.error("Error detailed:", err);
+                alert("فشل الإرسال: " + err.message);
+                btn.disabled = false;
+                btn.innerText = "إرسال الطلب ✅";
+            }
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+    }
+</script>
 </body>
 </html>

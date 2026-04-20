@@ -4,6 +4,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>تتبع اشتراكاتك | حلم نور</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800&display=swap" rel="stylesheet">
 </head>
@@ -15,70 +18,76 @@
             <input type="text" id="searchPhone" placeholder="أدخل رقم موبايلك هنا" style="width:100%; padding:15px; border-radius:10px; border:2px solid #ddd; font-family:'Cairo'; font-size:18px; text-align:center; outline:none; margin-bottom:15px;">
             <button class="btn-main-hero" style="width:100%" onclick="checkStatus()">بحث عن اشتراكاتي</button>
             
-            <div id="resultStatus" style="margin-top:25px;"></div>
+            <div id="resultsArea" style="margin-top:25px;"></div>
         </div>
-        <button onclick="location.href='index.html'" class="btn-back">⬅️ الرئيسية</button>
+        <button onclick="location.href='index.html'" class="btn-back">⬅️ العودة للرئيسية</button>
     </div>
 
     <script>
+        // إعداد Firebase
+        const firebaseConfig = { databaseURL: "https://helmnour-academy-default-rtdb.firebaseio.com/" };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         function checkStatus() {
             const phone = document.getElementById('searchPhone').value.trim();
-            const res = document.getElementById('resultStatus');
-            res.innerHTML = ""; // مسح النتائج السابقة
-            
-            if(!phone) return alert("اكتب رقمك الأول!");
+            const resultsArea = document.getElementById('resultsArea');
 
-            localStorage.setItem('current_user_phone', phone); // تسجيل دخول الطالب
-
-            // جلب كل الأقسام المفعلة لهذا الرقم من الـ LocalStorage
-            let userApprovedSections = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                let key = localStorage.key(i);
-                // بنبحث عن المفاتيح اللي بتبدأ بـ active_ وتنتهي برقم تليفون الطالب
-                if (key.startsWith('active_') && key.endsWith('_' + phone)) {
-                    let sectionName = key.replace('active_', '').replace('_' + phone, '');
-                    userApprovedSections.push(sectionName);
-                }
-            }
-
-            // فحص حالة الطلب المعلق (إذا لم يكن هناك أقسام مفعلة بعد)
-            const pendingData = JSON.parse(localStorage.getItem('user_auth_' + phone));
-
-            if (userApprovedSections.length === 0 && !pendingData) {
-                res.innerHTML = "<div style='background:#ffeaea; padding:15px; border-radius:10px; color:#e74c3c; text-align:center;'><b>رقم غير مسجل أو لم يتم إرسال طلب بعد</b></div>";
+            if (phone.length < 11) {
+                alert("برجاء إدخال رقم موبايل صحيح");
                 return;
             }
 
-            // 1. عرض الأقسام المعلقة (إن وجدت)
-            if(pendingData && pendingData.status === 'pending') {
-                res.innerHTML += `
-                <div style="background:#fff3cd; padding:15px; border-radius:10px; margin-bottom:15px; border:1px solid #f1c40f; text-align:center;">
-                    ⏳ قيد المراجعة في قسم: <b>${pendingData.targetName}</b><br>
-                    <small>سيتم التفعيل فور مراجعة الإدارة للوصل</small>
-                </div>`;
-            }
+            resultsArea.innerHTML = "<p>جاري البحث في السيرفر... 🔄</p>";
 
-            // 2. عرض الأقسام المفعلة وكل الحصص اللي جواها
-            userApprovedSections.forEach(section => {
-                let lessons = JSON.parse(localStorage.getItem('lessons_' + section)) || [];
+            // 1. البحث عن اشتراكات الطالب في Firebase
+            db.ref('user_subscriptions/' + phone).once('value', (snap) => {
+                const subs = snap.val();
                 
-                let sectionBox = document.createElement('div');
-                sectionBox.style = "background:#e8f5e9; padding:15px; border-radius:15px; margin-bottom:15px; border:2px solid #2ecc71; text-align:right;";
-                sectionBox.innerHTML = `<h3 style="margin:0 0 10px 0; color:#2c3e50; font-size:18px;">✅ قسم: ${section}</h3>`;
+                if (!subs) {
+                    resultsArea.innerHTML = `
+                        <div style="background:#ffebee; color:#c62828; padding:15px; border-radius:10px;">
+                            لا توجد اشتراكات مفعلة لهذا الرقم حالياً. 
+                            <br><small>لو لسه محول، انتظر موافقة الإدارة.</small>
+                        </div>`;
+                    return;
+                }
 
-                if(lessons.length > 0) {
-                    // عرض كل الفيديوهات المرفوعة في هذا القسم
-                    lessons.forEach((video, index) => {
+                resultsArea.innerHTML = "<h3>حصصك المتاحة حالياً:</h3>";
+
+                // 2. لكل قسم مشترك فيه الطالب، هنجيب الحصص بتاعته
+                for (let category in subs) {
+                    if (subs[category] === true) {
+                        displayCategoryLessons(category, resultsArea);
+                    }
+                }
+            });
+        }
+
+        function displayCategoryLessons(category, container) {
+            // إنشاء صندوق للقسم
+            const sectionBox = document.createElement('div');
+            sectionBox.style = "background:#f1f8ff; padding:15px; border-radius:15px; margin-bottom:15px; border:2px solid #3498db; text-align:right;";
+            sectionBox.innerHTML = `<h3 style="margin:0 0 10px 0; color:#2c3e50; font-size:18px;">✅ قسم: ${category}</h3>`;
+            container.appendChild(sectionBox);
+
+            // جلب الفيديوهات من السيرفر للقسم ده
+            db.ref('lessons/' + category).once('value', (snap) => {
+                const lessons = snap.val();
+                if (lessons) {
+                    let index = 1;
+                    for (let id in lessons) {
+                        const video = lessons[id];
                         sectionBox.innerHTML += `
                             <button class='btn-main-hero' style="background:#3498db; width:100%; margin-bottom:8px; padding:10px; font-size:15px;" 
                                 onclick="location.href='video-player.html?video=${encodeURIComponent(video.url)}&title=${encodeURIComponent(video.title)}'">
-                                🎬 حصة (${index + 1}): ${video.title}
+                                🎬 حصة (${index}): ${video.title}
                             </button>`;
-                    });
+                        index++;
+                    }
                 } else {
-                    sectionBox.innerHTML += `<p style='color:#666; font-size:14px; margin:0;'>الاشتراك مفعل، وجاري رفع الحصص حالياً.</p>`;
+                    sectionBox.innerHTML += `<p style='color:#666; font-size:14px; margin:0;'>الاشتراك مفعل، وجاري رفع الحصص لهذا القسم...</p>`;
                 }
-                res.appendChild(sectionBox);
             });
         }
     </script>

@@ -1,601 +1,371 @@
-          <!DOCTYPE html>
-
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
-
-
 <head>
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <meta charset="UTF-8">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة تحكم المالك | أكاديمية حلم نور</title>
-
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
-
     <style>
-
         :root { --main: #2c3e50; --danger: #e74c3c; --success: #27ae60; --accent: #3498db; --bg: #f0f2f5; --exam: #8e44ad; }
-
         body { background: var(--bg); font-family: 'Cairo', sans-serif; margin: 0; padding: 20px; direction: rtl; }
-
         #loginOverlay { position: fixed; inset: 0; background: var(--main); z-index: 10000; display: flex; justify-content: center; align-items: center; }
-
         .login-box { background: white; padding: 30px; border-radius: 15px; text-align: center; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-
         .login-box input { width: 100%; padding: 12px; margin: 20px 0; border: 2px solid #eee; border-radius: 10px; text-align: center; font-size: 18px; outline: none; }
-
         .login-box button { width: 100%; background: var(--success); color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 18px; }
-
         .container { max-width: 1100px; margin: auto; }
-
         .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; background: white; padding: 15px 25px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-
         .admin-header h1 { margin: 0; font-size: 24px; color: var(--main); }
-
         .btn-home { background: var(--main); color: white; text-decoration: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
-
-        .btn-home:hover { background: var(--accent); transform: scale(1.05); }
-
         .card { background: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #e1e4e8; }
-
         h2 { color: var(--main); border-right: 5px solid var(--accent); padding-right: 15px; margin-top: 0; font-size: 22px; }
-
         .table-wrapper { overflow-x: auto; margin-top: 15px; }
-
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
-
         th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
-
-        th { background: #f8f9fa; color: var(--main); font-weight: bold; }
-
+        th { background: #f8f9fa; color: var(--main); }
         input, select { padding: 12px; border: 2px solid #f0f0f0; border-radius: 10px; font-family: 'Cairo'; width: 100%; box-sizing: border-box; outline: none; }
-
         .btn { border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; transition: 0.2s; font-family: 'Cairo'; }
-
         .btn-add { background: var(--success); font-size: 18px; width: 100%; margin-top: 15px; }
-
-        .btn-exam { background: var(--exam); font-size: 18px; width: 100%; margin-top: 15px; }
-
         .btn-del { background: var(--danger); }
-
         .btn-view { background: var(--accent); }
-
-        #imgModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 11000; justify-content: center; align-items: center; cursor: zoom-out; }
-
+        #imgModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 11000; justify-content: center; align-items: center; }
         #imgModal img { max-width: 90%; max-height: 85%; border: 5px solid white; border-radius: 10px; }
-
     </style>
-
 </head>
-
-
-
 <body>
 
-
-
     <div id="loginOverlay">
-
         <div class="login-box">
-
             <h2 style="border:none">لوحة التحكم السرية 🔐</h2>
-
             <input type="password" id="passInput" placeholder="اكتب الباسورد هنا">
-
             <button onclick="unlock()">فتح النظام</button>
-
         </div>
-
     </div>
-
-
 
     <div class="container">
-
         <div class="admin-header">
-
             <h1>إدارة أكاديمية حلم نور 🚀</h1>
-
             <a href="index.html" class="btn-home">🏠 العودة للرئيسية</a>
-
         </div>
-
-
 
         <div class="card">
-
             <h2>🎥 رفع فيديو جديد</h2>
-
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-
                 <div>
-
                     <label>القسم المخصص:</label>
+                   
+                     <select id="catInput">
+    <option disabled selected value="">-- اختر القسم --</option>
+    
+    <optgroup label="📘 الصف الأول الابتدائي">
+        <option>1ب - اللغة العربية</option><option>1ب - الرياضيات</option><option>1ب - اللغة الإنجليزية</option>
+    </optgroup>
+    
+    <optgroup label="📗 الصف الثاني الابتدائي">
+        <option>2ب - اللغة العربية</option><option>2ب - الرياضيات</option><option>2ب - اللغة الإنجليزية</option>
+    </optgroup>
+    
+    <optgroup label="📙 الصف الثالث الابتدائي">
+        <option>3ب - اللغة العربية</option><option>3ب - الرياضيات</option><option>3ب - اللغة الإنجليزية</option><option>3ب - الدراسات الاجتماعية</option><option>3ب - العلوم</option>
+    </optgroup>
+    
+    <optgroup label="📕 الصف الرابع الابتدائي">
+        <option>4ب - اللغة العربية</option><option>4ب - الرياضيات</option><option>4ب - اللغة الإنجليزية</option><option>4ب - العلوم</option><option>4ب - الدراسات الاجتماعية</option>
+    </optgroup>
+    
+    <optgroup label="📒 الصف الخامس الابتدائي">
+        <option>5ب - اللغة العربية</option><option>5ب - الرياضيات</option><option>5ب - اللغة الإنجليزية</option><option>5ب - العلوم</option><option>5ب - الدراسات الاجتماعية</option>
+    </optgroup>
+    
+    <optgroup label="📓 الصف السادس الابتدائي">
+        <option>6ب - اللغة العربية</option><option>6ب - الرياضيات</option><option>6ب - اللغة الإنجليزية</option><option>6ب - العلوم</option><option>6ب - الدراسات الاجتماعية</option>
+    </optgroup>
 
-                    <select id="catInput">
+    <optgroup label="📚 الصف الأول الإعدادي">
+        <option>1ع - العلوم</option>
+        <option>1ع - الرياضيات</option>
+        <option>1ع - الدراسات الاجتماعية</option>
+        <option>1ع - اللغة الإنجليزية</option>
+        <option>1ع - اللغة العربية</option>
+    </optgroup>
 
-                        <option disabled selected value="">-- اختر القسم بالظبط --</option>
+    <optgroup label="📚 الصف الثاني الإعدادي">
+        <option>2ع - لغة عربية</option>
+        <option>2ع - لغة إنجليزية</option>
+        <option>2ع - دراسات اجتماعية</option>
+        <option>2ع - رياضيات</option>
+        <option>2ع - علوم</option>
+    </optgroup>
 
-                        <optgroup label="📘 الصف الأول الثانوي">
+    <optgroup label="📚 الصف الثالث الإعدادي">
+        <option>3ع - علوم</option>
+        <option>3ع - دراسات</option>
+        <option>3ع - رياضيات</option>
+        <option>3ع - لغة عربية</option>
+        <option>3ع - لغة إنجليزية</option>
+    </optgroup>
 
-                            <option>1ث - اللغة العربية</option><option>1ث - لغة أجنبية أولى</option><option>1ث - لغة أجنبية ثانية</option><option>1ث - الرياضيات</option><option>1ث - الفيزياء</option><option>1ث - الكيمياء</option><option>1ث - الأحياء</option><option>1ث - التاريخ</option><option>1ث - الجغرافيا</option><option>1ث - الفلسفة والمنطق</option>
-
-                        </optgroup>
-
-                        <option>كورسات</option>
-
-                    </select>
-
+    <optgroup label="📘 الصف الأول الثانوي">
+        <option>1ث - اللغة العربية</option><option>1ث - لغة أجنبية أولى</option><option>1ث - لغة أجنبية ثانية</option><option>1ث - الرياضيات</option><option>1ث - الفيزياء</option><option>1ث - الكيمياء</option><option>1ث - الأحياء</option><option>1ث - التاريخ</option><option>1ث - الجغرافيا</option><option>1ث - الفلسفة والمنطق</option>
+    </optgroup>
+    
+    <optgroup label="📗 الصف الثاني الثانوي">
+        <option>2ث - اللغة العربية</option><option>2ث - لغة أجنبية أولى</option><option>2ث - لغة أجنبية ثانية</option>
+        <option>2ث علمي - الرياضيات</option><option>2ث علمي - الفيزياء</option><option>2ث علمي - الكيمياء</option><option>2ث علمي - الأحياء</option>
+        <option>2ث أدبي - التاريخ</option><option>2ث أدبي - الجغرافيا</option><option>2ث أدبي - علم النفس</option><option>2ث أدبي - الفلسفة</option>
+    </optgroup>
+    
+    <optgroup label="📕 الصف الثالث الثانوي">
+        <option>3ث - اللغة العربية</option><option>3ث - لغة أجنبية أولى</option>
+        <option>3ث علوم - الأحياء</option><option>3ث علوم - الكيمياء</option><option>3ث علوم - الفيزياء</option>
+        <option>3ث رياضة - الرياضيات</option><option>3ث رياضة - الفيزياء</option><option>3ث رياضة - الكيمياء</option>
+        <option>3ث أدبي - التاريخ</option><option>3ث أدبي - الجغرافيا</option><option>3ث أدبي - علم النفس والاجتماع</option><option>3ث أدبي - الفلسفة والمنطق</option>
+    </optgroup>
+    
+    <optgroup label="💻 كورسات تعليمية">
+        <option>كورس تأسيس اللغة الأنجليزية</option><option>كورس المهارات الناعمة</option><option>كورس اللغة الفرنسية</option><option>كورس البرمجة</option><option>كورس استخدام كانفا</option>
+    </optgroup>
+    
+    <optgroup label="🏗️ قسم التأسيس">
+        <option>تأسيس قواعد نحوية</option><option>تأسيس الكيمياء للثانوية العامة</option><option>تأسيس لغة إنجليزية</option>
+    </optgroup>
+</select> 
                 </div>
-
                 <div><label>عنوان الحصة:</label><input type="text" id="lessonName" placeholder="مثال: شرح درس الجاذبية"></div>
-
                 <div style="grid-column: span 2;"><label>رابط يوتيوب:</label><input type="text" id="videoUrl" placeholder="الصق الرابط هنا"></div>
-
             </div>
-
             <button class="btn btn-add" onclick="saveVideo()">نشر الفيديو في الموقع ✅</button>
-
         </div>
-
-
 
         <div class="card" style="border-right: 8px solid var(--exam);">
-
             <h2 style="border-right-color: var(--exam);">📝 إضافة اختبار أو ملف PDF</h2>
-
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-
                 <div>
-
-                    <label>القسم الدراسي والمادة:</label>
-
-                    <select id="examCatInput">
-
-                        <option disabled selected value="">-- اختر المادة --</option>
-
-                        
-
+                    <label>القسم الدراسي:</label>
+                    <select id="examCat">
+                        <option value="">-- اختر القسم الدراسي والمادة --</option>
                         <optgroup label="📘 الصف الأول الابتدائي">
-
-                            <option value="1ب-عربي">1ب - اللغة العربية</option>
-
-                            <option value="1ب-رياضة">1ب - الرياضيات</option>
-
-                            <option value="1ب-انجليزي">1ب - اللغة الإنجليزية</option>
-
+                            <option value="1ب-اللغة العربية">1ب - اللغة العربية</option><option value="1ب-الرياضيات">1ب - الرياضيات</option><option value="1ب-اللغة الإنجليزية">1ب - اللغة الإنجليزية</option>
                         </optgroup>
-
-
-
                         <optgroup label="📗 الصف الثاني الابتدائي">
-
-                            <option value="2ب-عربي">2ب - اللغة العربية</option>
-
-                            <option value="2ب-رياضة">2ب - الرياضيات</option>
-
-                            <option value="2ب-انجليزي">2ب - اللغة الإنجليزية</option>
-
+                            <option value="2ب-اللغة العربية">2ب - اللغة العربية</option><option value="2ب-الرياضيات">2ب - الرياضيات</option><option value="2ب-اللغة الإنجليزية">2ب - اللغة الإنجليزية</option>
                         </optgroup>
-
-
-
                         <optgroup label="📙 الصف الثالث الابتدائي">
-
-                            <option value="3ب-عربي">3ب - اللغة العربية</option>
-
-                            <option value="3ب-رياضة">3ب - الرياضيات</option>
-
-                            <option value="3ب-انجليزي">3ب - اللغة الإنجليزية</option>
-
-                            <option value="3ب-دين">3ب - التربية الدينية</option>
-
-                            <option value="3ب-دراسات">3ب - الدراسات الاجتماعية</option>
-
-                            <option value="3ب-علوم">3ب - العلوم</option>
-
+                            <option value="3ب-اللغة العربية">3ب - اللغة العربية</option><option value="3ب-الرياضيات">3ب - الرياضيات</option><option value="3ب-اللغة الإنجليزية">3ب - اللغة الإنجليزية</option><option value="3ب-التربية الدينية">3ب - التربية الدينية</option><option value="3ب-الدراسات الاجتماعية">3ب - الدراسات الاجتماعية</option><option value="3ب-العلوم">3ب - العلوم</option>
                         </optgroup>
-
-
-
                         <optgroup label="📕 الصف الرابع الابتدائي">
-
-                            <option value="4ب-عربي">4ب - اللغة العربية</option>
-
-                            <option value="4ب-رياضة">4ب - الرياضيات</option>
-
-                            <option value="4ب-انجليزي">4ب - اللغة الإنجليزية</option>
-
-                            <option value="4ب-علوم">4ب - العلوم</option>
-
-                            <option value="4ب-دراسات">4ب - الدراسات الاجتماعية</option>
-
+                            <option value="4ب-اللغة العربية">4ب - اللغة العربية</option><option value="4ب-الرياضيات">4ب - الرياضيات</option><option value="4ب-اللغة الإنجليزية">4ب - اللغة الإنجليزية</option><option value="4ب-العلوم">4ب - العلوم</option><option value="4ب-الدراسات الاجتماعية">4ب - الدراسات الاجتماعية</option>
                         </optgroup>
-
-
-
                         <optgroup label="📒 الصف الخامس الابتدائي">
-
-                            <option value="5ب-عربي">5ب - اللغة العربية</option>
-
-                            <option value="5ب-رياضة">5ب - الرياضيات</option>
-
-                            <option value="5ب-انجليزي">5ب - اللغة الإنجليزية</option>
-
-                            <option value="5ب-علوم">5ب - العلوم</option>
-
-                            <option value="5ب-دراسات">5ب - الدراسات الاجتماعية</option>
-
+                            <option value="5ب-اللغة العربية">5ب - اللغة العربية</option><option value="5ب-الرياضيات">5ب - الرياضيات</option><option value="5ب-اللغة الإنجليزية">5ب - اللغة الإنجليزية</option><option value="5ب-العلوم">5ب - العلوم</option><option value="5ب-الدراسات الاجتماعية">5ب - الدراسات الاجتماعية</option>
                         </optgroup>
-
-
-
                         <optgroup label="📓 الصف السادس الابتدائي">
-
-                            <option value="6ب-عربي">6ب - اللغة العربية</option>
-
-                            <option value="6ب-رياضة">6ب - الرياضيات</option>
-
-                            <option value="6ب-انجليزي">6ب - اللغة الإنجليزية</option>
-
-                            <option value="6ب-علوم">6ب - العلوم</option>
-
-                            <option value="6ب-دراسات">6ب - الدراسات الاجتماعية</option>
-
+                            <option value="6ب-اللغة العربية">6ب - اللغة العربية</option><option value="6ب-الرياضيات">6ب - الرياضيات</option><option value="6ب-اللغة الإنجليزية">6ب - اللغة الإنجليزية</option><option value="6ب-العلوم">6ب - العلوم</option><option value="6ب-الدراسات الاجتماعية">6ب - الدراسات الاجتماعية</option>
                         </optgroup>
-
-
-
                         <optgroup label="📘 الصف الأول الإعدادي">
-
-                            <option value="1ع-عربي">1ع - اللغة العربية</option>
-
-                            <option value="1ع-انجليزي">1ع - اللغة الإنجليزية</option>
-
-                            <option value="1ع-رياضة">1ع - الرياضيات</option>
-
-                            <option value="1ع-دراسات">1ع - الدراسات الاجتماعية</option>
-
-                            <option value="1ع-علوم">1ع - العلوم</option>
-
+                            <option value="1ع-اللغة العربية">1ع - اللغة العربية</option><option value="1ع-اللغة الإنجليزية">1ع - اللغة الإنجليزية</option><option value="1ع-الرياضيات">1ع - الرياضيات</option><option value="1ع-الدراسات الاجتماعية">1ع - الدراسات الاجتماعية</option><option value="1ع-العلوم">1ع - العلوم</option>
                         </optgroup>
-
-
-
                         <optgroup label="📗 الصف الثاني الإعدادي">
-
-                            <option value="2ع-عربي">2ع - اللغة العربية</option>
-
-                            <option value="2ع-انجليزي">2ع - لغة إنجليزية</option>
-
-                            <option value="2ع-دراسات">2ع - دراسات اجتماعية</option>
-
-                            <option value="2ع-رياضة">2ع - رياضيات</option>
-
-                            <option value="2ع-علوم">2ع - علوم</option>
-
+                            <option value="2ع-اللغة العربية">2ع - اللغة العربية</option><option value="2ع-لغة إنجليزية">2ع - لغة إنجليزية</option><option value="2ع-دراسات اجتماعية">2ع - دراسات اجتماعية</option><option value="2ع-رياضيات">2ع - رياضيات</option><option value="2ع-علوم">2ع - علوم</option>
                         </optgroup>
-
-
-
                         <optgroup label="📙 الصف الثالث الإعدادي">
-
-                            <option value="3ع-عربي">3ع - اللغة العربية</option>
-
-                            <option value="3ع-انجليزي">3ع - لغة إنجليزية</option>
-
-                            <option value="3ع-دراسات">3ع - دراسات</option>
-
-                            <option value="3ع-رياضة">3ع - رياضيات</option>
-
-                            <option value="3ع-علوم">3ع - علوم</option>
-
+                            <option value="3ع-اللغة العربية">3ع - اللغة العربية</option><option value="3ع-لغة إنجليزية">3ع - لغة إنجليزية</option><option value="3ع-دراسات">3ع - دراسات</option><option value="3ع-رياضيات">3ع - رياضيات</option><option value="3ع-علوم">3ع - علوم</option>
                         </optgroup>
-
-
-
                         <optgroup label="📘 الصف الأول الثانوي">
-
-                            <option value="1ث-عربي">1ث - اللغة العربية</option>
-
-                            <option value="1ث-انجليزي">1ث - اللغة الأجنبية الأولى</option>
-
-                            <option value="1ث-لغة2">1ث - اللغة الأجنبية الثانية</option>
-
-                            <option value="1ث-رياضة">1ث - الرياضيات</option>
-
-                            <option value="1ث-فيزياء">1ث - الفيزياء</option>
-
-                            <option value="1ث-كيمياء">1ث - الكيمياء</option>
-
-                            <option value="1ث-احياء">1ث - الأحياء</option>
-
-                            <option value="1ث-تاريخ">1ث - التاريخ</option>
-
-                            <option value="1ث-جغرافيا">1ث - الجغرافيا</option>
-
-                            <option value="1ث-فلسفة">1ث - الفلسفة والمنطق</option>
-
+                            <option value="1ث-اللغة العربية">1ث - اللغة العربية</option><option value="1ث-اللغة الأجنبية الأولى">1ث - اللغة الأجنبية الأولى</option><option value="1ث-اللغة الأجنبية الثانية">1ث - اللغة الأجنبية الثانية</option><option value="1ث-الرياضيات">1ث - الرياضيات</option><option value="1ث-الفيزياء">1ث - الفيزياء</option><option value="1ث-الكيمياء">1ث - الكيمياء</option><option value="1ث-الأحياء">1ث - الأحياء</option><option value="1ث-التاريخ">1ث - التاريخ</option><option value="1ث-الجغرافيا">1ث - الجغرافيا</option><option value="1ث-الفلسفة والمنطق">1ث - الفلسفة والمنطق</option>
                         </optgroup>
-
-
-
                         <optgroup label="📗 الصف الثاني الثانوي">
-
-                            <option value="2ث-عربي">2ث - اللغة العربية</option>
-
-                            <option value="2ث-انجليزي">2ث - اللغة الأجنبية الأولى</option>
-
-                            <option value="2ث-لغة2">2ث - اللغة الأجنبية الثانية</option>
-
-                            <option value="2ث-رياضة">2ث - الرياضيات</option>
-
-                            <option value="2ث-فيزياء">2ث - الفيزياء</option>
-
-                            <option value="2ث-كيمياء">2ث - الكيمياء</option>
-
-                            <option value="2ث-احياء">2ث - الأحياء</option>
-
-                            <option value="2ث-تاريخ">2ث - التاريخ</option>
-
-                            <option value="2ث-جغرافيا">2ث - الجغرافيا</option>
-
-                            <option value="2ث-نفس">2ث - علم النفس</option>
-
-                            <option value="2ث-فلسفة">2ث - الفلسفة</option>
-
+                            <option value="2ث-اللغة العربية">2ث - اللغة العربية</option><option value="2ث-اللغة الأجنبية الأولى">2ث - اللغة الأجنبية الأولى</option><option value="2ث-اللغة الأجنبية الثانية">2ث - اللغة الأجنبية الثانية</option><option value="2ث-الرياضيات">2ث - الرياضيات</option><option value="2ث-الفيزياء">2ث - الفيزياء</option><option value="2ث-الكيمياء">2ث - الكيمياء</option><option value="2ث-الأحياء">2ث - الأحياء</option><option value="2ث-التاريخ">2ث - التاريخ</option><option value="2ث-الجغرافيا">2ث - الجغرافيا</option><option value="2ث-علم النفس">2ث - علم النفس</option><option value="2ث-الفلسفة">2ث - الفلسفة</option>
                         </optgroup>
-
-
-
                         <optgroup label="📕 الصف الثالث الثانوي">
-
-                            <option value="3ث-عربي">3ث - اللغة العربية</option>
-
-                            <option value="3ث-انجليزي">3ث - اللغة الأجنبية الأولى</option>
-
-                            <option value="3ث-احياء">3ث - الأحياء</option>
-
-                            <option value="3ث-كيمياء">3ث - الكيمياء</option>
-
-                            <option value="3ث-فيزياء">3ث - الفيزياء</option>
-
-                            <option value="3ث-رياضة">3ث - الرياضيات</option>
-
-                            <option value="3ث-تاريخ">3ث - التاريخ</option>
-
-                            <option value="3ث-جغرافيا">3ث - الجغرافيا</option>
-
-                            <option value="3ث-نفس">3ث - علم النفس والاجتماع</option>
-
-                            <option value="3ث-فلسفة">3ث - الفلسفة والمنطق</option>
-
+                            <option value="3ث-اللغة العربية">3ث - اللغة العربية</option><option value="3ث-اللغة الأجنبية الأولى">3ث - اللغة الأجنبية الأولى</option><option value="3ث-الأحياء">3ث - الأحياء</option><option value="3ث-الكيمياء">3ث - الكيمياء</option><option value="3ث-الفيزياء">3ث - الفيزياء</option><option value="3ث-الرياضيات">3ث - الرياضيات</option><option value="3ث-التاريخ">3ث - التاريخ</option><option value="3ث-الجغرافيا">3ث - الجغرافيا</option><option value="3ث-علم النفس والاجتماع">3ث - علم النفس والاجتماع</option><option value="3ث-الفلسفة والمنطق">3ث - الفلسفة والمنطق</option>
                         </optgroup>
-
-                        <option value="كورسات">كورسات خارجية</option>
-
                     </select>
-
                 </div>
-
                 <div>
-
                     <label>نوع الملف:</label>
-
                     <select id="examType">
-
                         <option value="pdf">ملف PDF (مذكرة/اختبار)</option>
-
                         <option value="link">رابط موقع خارجي (Google Forms)</option>
-
                     </select>
-
                 </div>
-
                 <div><label>اسم الاختبار/الملف:</label><input type="text" id="examTitle" placeholder="مثال: امتحان شهر أكتوبر"></div>
-
                 <div><label>الرابط (PDF أو موقع):</label><input type="text" id="examUrl" placeholder="ضع الرابط المباشر هنا"></div>
-
             </div>
-
-            <button class="btn btn-exam" onclick="saveExam()">نشر الاختبار/الملف الآن 🚀</button>
-
+            <button class="btn btn-add" style="background:var(--exam); width:100%" onclick="addExam()">نشر الاختبار ✅</button>
         </div>
-
-
 
         <div class="card" style="border-top: 4px solid var(--exam);">
-
             <h2>📑 إدارة وحذف الاختبارات والملفات</h2>
-
-            <div class="table-wrapper"><table id="examTable"><thead><tr><th>القسم</th><th>النوع</th><th>العنوان</th><th>رابط المعاينة</th><th>حذف</th></tr></thead><tbody id="examListBody"></tbody></table></div>
-
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>القسم</th><th>النوع</th><th>العنوان</th><th>رابط المعاينة</th><th>إجراء الحذف</th></tr></thead>
+                    <tbody id="examListBody"></tbody>
+                </table>
+            </div>
         </div>
-
-
 
         <div class="card">
-
-            <h2>⏳ طلبات الاشتراك</h2>
-
-            <div class="table-wrapper"><table><thead><tr><th>الطالب</th><th>الرقم</th><th>القسم</th><th>الوصل</th><th>قرار</th></tr></thead><tbody id="requestBody"></tbody></table></div>
-
+            <h2>⏳ طلبات الاشتراك المعلقة</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>الطالب</th><th>الرقم</th><th>القسم</th><th>الوصل</th><th>قرار</th></tr></thead>
+                    <tbody id="requestBody"></tbody>
+                </table>
+            </div>
         </div>
-
-
 
         <div class="card">
-
-            <h2>👥 المشتركين</h2>
-
-            <div class="table-wrapper"><table><thead><tr><th>الاسم</th><th>القسم</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody id="userListBody"></tbody></table></div>
-
+            <h2>👥 المشتركين النشطين (أونلاين)</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>الاسم</th><th>الرقم</th><th>القسم</th><th>الحالة</th><th>إجراء</th></tr></thead>
+                    <tbody id="userListBody"></tbody>
+                </table>
+            </div>
         </div>
-
-
 
         <div class="card">
-
-            <h2>🗑️ الفيديوهات</h2>
-
-            <div class="table-wrapper"><table><thead><tr><th>القسم</th><th>الاسم</th><th>حذف</th></tr></thead><tbody id="videoListBody"></tbody></table></div>
-
+            <h2>🗑️ إدارة جميع الفيديوهات المرفوعة</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>القسم الدراسي</th><th>اسم الدرس</th><th>حذف</th></tr></thead>
+                    <tbody id="videoListBody"></tbody>
+                </table>
+            </div>
         </div>
-
     </div>
-
-
 
     <div id="imgModal" onclick="this.style.display='none'"><img id="modalImg" src=""></div>
 
+   <script>
+    const ADMIN_PASS = "12123";
 
+ // رابط المشروع هتلاقيه في صفحة Settings -> API فوق خالص باسم Project URL
+const SUPABASE_URL = 'https://your-id.supabase.co'; 
+const SUPABASE_KEY = 'sb_publishable_QoIPp4IFBEdES90fNOqbKg_6kIF0GeO';
 
-    <script>
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        const ADMIN_PASS = "12123";
-
-        function unlock() { if(document.getElementById('passInput').value === ADMIN_PASS) { document.getElementById('loginOverlay').style.display = 'none'; renderAll(); } else { alert("الباسورد غلط!"); } }
-
-
-
-        function saveVideo() {
-
-            const cat = document.getElementById('catInput').value;
-
-            const name = document.getElementById('lessonName').value.trim();
-
-            const url = document.getElementById('videoUrl').value.trim();
-
-            if(!cat || !name || !url) return alert("اكمل البيانات أولاً");
-
-            let lessons = JSON.parse(localStorage.getItem('lessons_' + cat)) || [];
-
-            lessons.push({ title: name, url: url });
-
-            localStorage.setItem('lessons_' + cat, JSON.stringify(lessons));
-
-            alert("✅ تم الحفظ!");
-
-            document.getElementById('lessonName').value = ""; document.getElementById('videoUrl').value = "";
-
-            renderAll();
-
+    // تهيئة المكتبة فور تحميل الصفحة
+    window.onload = function() {
+        if (typeof supabase !== 'undefined') {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log("Supabase Ready ✅");
+        } else {
+            console.error("Supabase library not loaded! Check your internet.");
         }
+    };
 
-
-
-        function saveExam() {
-
-            const cat = document.getElementById('examCatInput').value;
-
-            const type = document.getElementById('examType').value;
-
-            const title = document.getElementById('examTitle').value.trim();
-
-            const url = document.getElementById('examUrl').value.trim();
-
-            if(!cat || !title || !url) return alert("اكمل البيانات");
-
-            let exams = JSON.parse(localStorage.getItem('exams_data')) || [];
-
-            exams.push({ cat, type, title, url });
-
-            localStorage.setItem('exams_data', JSON.stringify(exams));
-
-            alert("✅ تم النشر!");
-
-            document.getElementById('examTitle').value = ""; document.getElementById('examUrl').value = "";
-
-            renderAll();
-
-        }
-
-
-
-        function renderAll() {
-
-            // فيديوهات
-
-            const vBody = document.getElementById('videoListBody'); vBody.innerHTML = "";
-
-            for (let i = 0; i < localStorage.length; i++) {
-
-                let key = localStorage.key(i);
-
-                if (key.startsWith('lessons_')) {
-
-                    let cat = key.replace('lessons_', '');
-
-                    let items = JSON.parse(localStorage.getItem(key)) || [];
-
-                    items.forEach((l, idx) => { vBody.innerHTML += `<tr><td>${cat}</td><td>${l.title}</td><td><button class="btn btn-del" onclick="deleteVideo('${cat}', ${idx})">حذف</button></td></tr>`; });
-
-                }
-
+    // دالة الفتح (مُعدلة لتكون أسرع وأضمن)
+    function unlock() {
+        const passInput = document.getElementById('passInput').value.trim();
+        
+        if(passInput === ADMIN_PASS) {
+            console.log("Password Correct! Opening...");
+            document.getElementById('loginOverlay').style.display = 'none';
+            // استدعاء البيانات بعد فتح اللوحة
+            if(supabaseClient) {
+                renderAll();
             }
-
-            // اختبارات
-
-            const eBody = document.getElementById('examListBody'); eBody.innerHTML = "";
-
-            let exams = JSON.parse(localStorage.getItem('exams_data')) || [];
-
-            exams.forEach((ex, i) => { eBody.innerHTML += `<tr><td>${ex.cat}</td><td>${ex.type}</td><td>${ex.title}</td><td><a href="${ex.url}" target="_blank">فتح</a></td><td><button class="btn btn-del" onclick="deleteExam(${i})">حذف</button></td></tr>`; });
-
-            // طلبات
-
-            const rBody = document.getElementById('requestBody'); rBody.innerHTML = "";
-
-            let reqs = JSON.parse(localStorage.getItem('course_requests')) || [];
-
-            reqs.forEach((r, i) => { rBody.innerHTML += `<tr><td>${r.name}</td><td>${r.phone}</td><td>${r.category}</td><td><button onclick="showImg('${r.screen}')">عرض</button></td><td><button onclick="approveUser(${i})">قبول</button> <button onclick="rejectUser(${i})">رفض</button></td></tr>`; });
-
-            // طلاب
-
-            const uBody = document.getElementById('userListBody'); uBody.innerHTML = "";
-
-            let students = JSON.parse(localStorage.getItem('active_students')) || [];
-
-            students.forEach((s, i) => { uBody.innerHTML += `<tr><td>${s.name}</td><td>${s.category}</td><td>نشط</td><td><button onclick="kickUser(${i})">رفد</button></td></tr>`; });
-
+        } else { 
+            alert("الباسورد غلط يا مستر! اتأكد إنك بتكتب 12123 والكيبورد إنجليزي."); 
         }
+    }
 
+    // --- باقي وظائف الرفع والعرض (Supabase) ---
+    async function saveVideo() {
+        const cat = document.getElementById('catInput').value;
+        const name = document.getElementById('lessonName').value.trim();
+        const url = document.getElementById('videoUrl').value.trim();
+        if(!cat || !name || !url) return alert("اكمل البيانات أولاً");
 
+        const { error } = await supabaseClient.from('lessons').insert([{ category: cat, title: name, url: url }]);
+        if(error) alert("خطأ في السيرفر: " + error.message);
+        else { alert("✅ تم النشر بنجاح!"); renderAll(); }
+    }
 
-        function deleteVideo(cat, idx) { let l = JSON.parse(localStorage.getItem('lessons_'+cat)); l.splice(idx,1); localStorage.setItem('lessons_'+cat, JSON.stringify(l)); renderAll(); }
+    async function addExam() {
+        const cat = document.getElementById('examCat').value;
+        const type = document.getElementById('examType').value;
+        const title = document.getElementById('examTitle').value.trim();
+        const url = document.getElementById('examUrl').value.trim();
+        if(!cat || !title || !url) return alert("اكمل البيانات");
 
-        function deleteExam(idx) { let e = JSON.parse(localStorage.getItem('exams_data')); e.splice(idx,1); localStorage.setItem('exams_data', JSON.stringify(e)); renderAll(); }
+        const { error } = await supabaseClient.from('exams_data').insert([{ category: cat, type: type, title: title, url: url }]);
+        if(error) alert("خطأ في السيرفر: " + error.message);
+        else { alert("✅ تم النشر بنجاح!"); renderAll(); }
+    }
 
-        function approveUser(i) {
+    async function renderAll() {
+        if(!supabaseClient) return;
 
-            let reqs = JSON.parse(localStorage.getItem('course_requests'));
+        // 1. عرض الفيديوهات
+        const vBody = document.getElementById('videoListBody');
+        vBody.innerHTML = "<tr><td colspan='3'>جاري التحميل...</td></tr>";
+        let { data: lessons } = await supabaseClient.from('lessons').select('*');
+        vBody.innerHTML = "";
+        lessons?.forEach(v => {
+            vBody.innerHTML += `<tr><td>${v.category}</td><td>${v.title}</td><td><button class="btn btn-del" onclick="deleteVideo(${v.id})">حذف 🗑️</button></td></tr>`;
+        });
 
-            let u = reqs[i];
+        // 2. عرض الاختبارات
+        const eBody = document.getElementById('examListBody');
+        eBody.innerHTML = "<tr><td colspan='5'>جاري التحميل...</td></tr>";
+        let { data: exams } = await supabaseClient.from('exams_data').select('*');
+        eBody.innerHTML = "";
+        exams?.forEach(ex => {
+            eBody.innerHTML += `<tr><td>${ex.category}</td><td>${ex.type}</td><td>${ex.title}</td><td><a href="${ex.url}" target="_blank">فتح</a></td><td><button class="btn btn-del" onclick="deleteExam(${ex.id})">حذف</button></td></tr>`;
+        });
 
-            localStorage.setItem('active_'+u.category+'_'+u.phone, 'true');
+        // 3. طلبات الاشتراك والمشتركين
+        renderRequests();
+        renderActiveUsers();
+    }
 
-            let s = JSON.parse(localStorage.getItem('active_students')) || [];
+    async function renderActiveUsers() {
+        const uBody = document.getElementById('userListBody');
+        let { data: subs } = await supabaseClient.from('user_subscriptions').select('*');
+        uBody.innerHTML = "";
+        subs?.forEach(s => {
+            uBody.innerHTML += `<tr><td>طالب مسجل</td><td>${s.phone}</td><td>${s.category}</td><td style="color:green">نشط</td><td><button class="btn btn-del" onclick="kickUser(${s.id})">طرد ❌</button></td></tr>`;
+        });
+    }
 
-            s.push(u); localStorage.setItem('active_students', JSON.stringify(s));
+    // --- وظائف الحذف والطلبات ---
+    async function deleteVideo(id) { if(confirm('حذف الفيديو؟')) { await supabaseClient.from('lessons').delete().eq('id', id); renderAll(); } }
+    async function deleteExam(id) { if(confirm('حذف الاختبار؟')) { await supabaseClient.from('exams_data').delete().eq('id', id); renderAll(); } }
+    async function kickUser(id) { if(confirm('طرد الطالب؟')) { await supabaseClient.from('user_subscriptions').delete().eq('id', id); renderAll(); } }
 
-            reqs.splice(i,1); localStorage.setItem('course_requests', JSON.stringify(reqs));
+    function renderRequests() {
+        const rBody = document.getElementById('requestBody');
+        let reqs = JSON.parse(localStorage.getItem('course_requests')) || [];
+        rBody.innerHTML = "";
+        reqs.forEach((r, i) => {
+            rBody.innerHTML += `<tr><td>${r.name}</td><td>${r.phone}</td><td>${r.category}</td><td><button class="btn btn-view" onclick="showImg('${r.screen}')">👁️</button></td><td><button class="btn" style="background:var(--success)" onclick="approveUser(${i})">قبول</button> <button class="btn btn-del" onclick="rejectUser(${i})">رفض</button></td></tr>`;
+        });
+    }
 
-            renderAll();
-
+    async function approveUser(i) {
+        let reqs = JSON.parse(localStorage.getItem('course_requests'));
+        let u = reqs[i];
+        const { error } = await supabaseClient.from('user_subscriptions').insert([{ phone: u.phone, category: u.category }]);
+        if(!error) {
+            reqs.splice(i,1);
+            localStorage.setItem('course_requests', JSON.stringify(reqs));
+            alert("تم التفعيل!"); renderAll();
         }
+    }
 
-        function rejectUser(i) { let r = JSON.parse(localStorage.getItem('course_requests')); r.splice(i,1); localStorage.setItem('course_requests', JSON.stringify(r)); renderAll(); }
+    function rejectUser(i) {
+        let r = JSON.parse(localStorage.getItem('course_requests'));
+        r.splice(i,1);
+        localStorage.setItem('course_requests', JSON.stringify(r));
+        renderAll();
+    }
 
-        function kickUser(i) { let s = JSON.parse(localStorage.getItem('active_students')); localStorage.removeItem('active_'+s[i].category+'_'+s[i].phone); s.splice(i,1); localStorage.setItem('active_students', JSON.stringify(s)); renderAll(); }
-
-        function showImg(src) { document.getElementById('modalImg').src = src; document.getElementById('imgModal').style.display = 'flex'; }
-
-    </script>
-
-
-
+    function showImg(src) { document.getElementById('modalImg').src = src; document.getElementById('imgModal').style.display = 'flex'; }
+</script>
 </body>
-
-</html>    
+</html>
