@@ -27,7 +27,6 @@
             border: none;
         }
 
-        /* الطبقة الشفافة - تم تقليل الـ z-index قليلاً لضمان عدم التداخل مع أوامر التشغيل البرمجية */
         .video-shield {
             position: absolute;
             top: 0; left: 0;
@@ -94,16 +93,20 @@
 
         document.getElementById('lessonTitle').innerText = lessonName;
 
-        // دالة استخراج الـ ID المطورة
+        // دالة استخراج الـ ID "الجوكر" - بتشغل أي رابط يوتيوب في العالم
         function extractYoutubeId(url) {
             if (!url) return null;
-            url = decodeURIComponent(url);
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            // إزالة المسافات وأي تشفير زائد
+            url = decodeURIComponent(url).trim();
+            
+            // Regex مطور للتعامل مع كل الصيغ بما فيها روابط الموبايل والـ Shared والمختصرة
+            const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
             const match = url.match(regExp);
-            if (match && match[2].length === 11) {
-                return match[2];
+            
+            if (match && match[1]) {
+                return match[1];
             } else {
-                // لو الرابط اللي مبعوت هو الـ ID نفسه
+                // لو المستخدم حط الـ ID مباشرة (11 حرف)
                 return url.length === 11 ? url : null;
             }
         }
@@ -121,7 +124,7 @@
                 document.getElementById('playerArea').innerHTML = `
                     <div class="error-msg">
                         <h3>⚠️ خطأ في رابط الحصة</h3>
-                        <p>تأكد من رفع رابط يوتيوب صحيح من لوحة الإدارة.</p>
+                        <p>تأكد من نسخ رابط يوتيوب صحيح من تطبيق يوتيوب أو المتصفح.</p>
                     </div>`;
                 return;
             }
@@ -151,11 +154,10 @@
         }
 
         function onPlayerError(e) {
-            console.error("Youtube API Error:", e);
             document.getElementById('playerArea').innerHTML = `
                 <div class="error-msg">
                     <h3>❌ الفيديو غير متاح</h3>
-                    <p>تأكد من أن الفيديو "عام" أو "غير مدرج" ومفعل به خيار "التضمين".</p>
+                    <p>تأكد أن الفيديو "عام" أو "غير مدرج" ومفعل به خيار "التضمين" في إعدادات يوتيوب.</p>
                 </div>`;
         }
 
@@ -166,7 +168,7 @@
         }
 
         function updateTimer() {
-            if (player && player.getCurrentTime) {
+            if (player && player.getCurrentTime && player.getDuration) {
                 let current = player.getCurrentTime();
                 let total = player.getDuration();
                 if (total > 0) {
@@ -191,7 +193,7 @@
             }
         }
 
-        // منع السرقة والفحص
+        // الحماية
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.onkeydown = function(e) {
             if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73) || (e.ctrlKey && e.keyCode == 85)) return false;
