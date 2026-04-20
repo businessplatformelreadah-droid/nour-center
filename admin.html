@@ -155,7 +155,6 @@
     <div id="imgModal" onclick="this.style.display='none'"><img id="modalImg" src=""></div>
 
 <script>
-    // بيانات الربط الأساسية (نفس البيانات الخاصة بك)
     const ADMIN_PASS = "12123";
     const SUPABASE_URL = 'https://viutmpktcgceyofuxmus.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_QoIPp4IFBEdES90fNOqbKg_6kIF0GeO';
@@ -173,11 +172,11 @@
     async function renderAll() {
         renderRequests();
         renderActiveUsers();
-        renderVideos(); // تحديث فيديوهات الحصص
+        renderVideos(); 
         renderExams();
     }
 
-    // --- إدارة فيديوهات الحصص (جدول lessons) ---
+    // --- إدارة فيديوهات الحصص (lessons) ---
     async function saveVideo() {
         const cat = document.getElementById('catInput').value;
         const name = document.getElementById('lessonName').value.trim();
@@ -185,12 +184,7 @@
         
         if(!cat || !name || !url) return alert("يرجى إكمال كافة بيانات الفيديو");
         
-        // النشر في جدول lessons
-        const { error } = await supabaseClient.from('lessons').insert([{ 
-            category: cat, 
-            title: name, 
-            url: url 
-        }]);
+        const { error } = await supabaseClient.from('lessons').insert([{ category: cat, title: name, url: url }]);
 
         if(!error) { 
             alert("✅ تم نشر فيديو الحصة بنجاح!"); 
@@ -198,7 +192,7 @@
             document.getElementById('videoUrl').value = "";
             renderVideos(); 
         } else {
-            alert("خطأ في النشر لجدول lessons: " + error.message);
+            alert("خطأ في النشر: " + error.message);
         }
     }
 
@@ -206,27 +200,29 @@
         const vBody = document.getElementById('videoListBody');
         let { data, error } = await supabaseClient.from('lessons').select('*').order('id', { ascending: false });
         
-        if(error) {
-            vBody.innerHTML = "<tr><td colspan='3'>خطأ في تحميل الفيديوهات</td></tr>";
-            return;
-        }
+        if(error) return vBody.innerHTML = "<tr><td colspan='3'>خطأ في التحميل</td></tr>";
 
         vBody.innerHTML = data?.map(v => `
             <tr>
                 <td>${v.category}</td>
                 <td>${v.title}</td>
                 <td><button class="btn btn-del" onclick="deleteVideo(${v.id})">حذف 🗑️</button></td>
-            </tr>`).join('') || "<tr><td colspan='3'>لا توجد فيديوهات حالياً</td></tr>";
+            </tr>`).join('') || "<tr><td colspan='3'>لا توجد فيديوهات</td></tr>";
     }
 
     async function deleteVideo(id) {
-        if(confirm('هل أنت متأكد من حذف هذا الفيديو من الحصص؟')) { 
-            await supabaseClient.from('lessons').delete().eq('id', id); 
-            renderVideos(); 
+        if(confirm('هل أنت متأكد من حذف هذا الفيديو؟')) { 
+            const { error } = await supabaseClient.from('lessons').delete().eq('id', id); 
+            if(!error) {
+                alert("تم الحذف بنجاح");
+                renderVideos(); 
+            } else {
+                alert("فشل الحذف: " + error.message);
+            }
         }
     }
 
-    // --- إدارة الاختبارات (جدول exams_data) ---
+    // --- إدارة الاختبارات (exams_data) ---
     async function addExam() {
         const cat = document.getElementById('examCat').value;
         const type = document.getElementById('examType').value;
@@ -236,7 +232,9 @@
 
         const { error } = await supabaseClient.from('exams_data').insert([{ category: cat, type: type, title: title, url: url }]);
         if(!error) { 
-            alert("✅ تم نشر الاختبار/الملف بنجاح!"); 
+            alert("✅ تم نشر الاختبار بنجاح!"); 
+            document.getElementById('examTitle').value = "";
+            document.getElementById('examUrl').value = "";
             renderExams(); 
         } else {
             alert("خطأ: " + error.message);
@@ -252,26 +250,28 @@
                 <td>${ex.type === 'pdf' ? 'ملف PDF' : 'رابط خارجي'}</td>
                 <td>${ex.title}</td>
                 <td><a href="${ex.url}" target="_blank" style="color:var(--accent); font-weight:bold;">معاينة</a></td>
-                <td><button class="btn btn-del" onclick="deleteExam(${ex.id})">حذف</button></td>
-            </tr>`).join('') || "";
+                <td><button class="btn btn-del" onclick="deleteExam(${ex.id})">حذف 🗑️</button></td>
+            </tr>`).join('') || "<tr><td colspan='5'>لا توجد اختبارات</td></tr>";
     }
 
     async function deleteExam(id) {
-        if(confirm('حذف هذا الملف؟')) { 
-            await supabaseClient.from('exams_data').delete().eq('id', id); 
-            renderExams(); 
+        if(confirm('هل تريد حذف هذا الملف نهائياً؟')) { 
+            const { error } = await supabaseClient.from('exams_data').delete().eq('id', id); 
+            if(!error) {
+                alert("تم الحذف");
+                renderExams(); 
+            } else {
+                alert("فشل الحذف: " + error.message);
+            }
         }
     }
 
     // --- إدارة طلبات الاشتراك ---
     async function renderRequests() {
         const rBody = document.getElementById('requestBody');
-        let { data: reqs, error } = await supabaseClient.from('course_requests').select('*');
+        let { data: reqs, error } = await supabaseClient.from('course_requests').select('*').order('id', { ascending: false });
         
-        if (error) {
-            rBody.innerHTML = "<tr><td colspan='5'>خطأ في تحميل الطلبات</td></tr>";
-            return;
-        }
+        if (error) return rBody.innerHTML = "<tr><td colspan='5'>خطأ في التحميل</td></tr>";
 
         rBody.innerHTML = reqs?.map(r => `
             <tr>
@@ -283,7 +283,7 @@
                     <button class="btn" style="background:var(--success)" onclick="approveUser('${r.id}','${r.phone}','${r.category}')">قبول ✅</button>
                     <button class="btn btn-del" onclick="rejectUser('${r.id}')">رفض ❌</button>
                 </td>
-            </tr>`).join('') || "<tr><td colspan='5'>لا توجد طلبات جديدة حالياً</td></tr>";
+            </tr>`).join('') || "<tr><td colspan='5'>لا توجد طلبات معلقة</td></tr>";
     }
 
     async function approveUser(id, phone, category) {
@@ -291,18 +291,15 @@
             .from('user_subscriptions')
             .insert([{ phone: String(phone), category: category }]);
 
-        if (insertError) {
-            alert("فشل في إضافة الطالب: " + insertError.message);
-            return;
-        }
+        if (insertError) return alert("فشل في إضافة الطالب: " + insertError.message);
 
         await supabaseClient.from('course_requests').delete().eq('id', id);
-        alert("✅ تم قبول الطالب بنجاح");
+        alert("✅ تم تفعيل الاشتراك بنجاح");
         renderAll();
     }
 
     async function rejectUser(id) {
-        if(confirm('هل تريد فعلاً رفض وحذف هذا الطلب؟')) { 
+        if(confirm('حذف هذا الطلب؟')) { 
             const { error } = await supabaseClient.from('course_requests').delete().eq('id', id); 
             if(!error) renderRequests();
         }
@@ -310,20 +307,23 @@
 
     async function renderActiveUsers() {
         const uBody = document.getElementById('userListBody');
-        let { data: subs } = await supabaseClient.from('user_subscriptions').select('*');
+        let { data: subs } = await supabaseClient.from('user_subscriptions').select('*').order('id', { ascending: false });
         uBody.innerHTML = subs?.map(s => `
             <tr>
                 <td>${s.phone}</td>
                 <td>${s.category}</td>
                 <td style="color:var(--success); font-weight:bold;">نشط ✅</td>
-                <td><button class="btn btn-del" onclick="kickUser(${s.id})">إلغاء الاشتراك</button></td>
-            </tr>`).join('') || "";
+                <td><button class="btn btn-del" onclick="kickUser(${s.id})">إلغاء اشتراك</button></td>
+            </tr>`).join('') || "<tr><td colspan='4'>لا يوجد مشتركين</td></tr>";
     }
 
     async function kickUser(id) {
-        if(confirm('هل تريد حذف هذا المشترك؟')) { 
-            await supabaseClient.from('user_subscriptions').delete().eq('id', id); 
-            renderActiveUsers(); 
+        if(confirm('هل تريد إلغاء اشتراك هذا الطالب؟')) { 
+            const { error } = await supabaseClient.from('user_subscriptions').delete().eq('id', id); 
+            if(!error) {
+                alert("تم الإلغاء");
+                renderActiveUsers(); 
+            }
         }
     }
 
