@@ -1,143 +1,109 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بوابة أولياء الأمور - سنتر حلم نور</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>بوابة أولياء الأمور | أكاديمية حلم نور</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #f1c40f; --dark: #2c3e50; --accent: #3498db; --success: #27ae60; }
-        body { background: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding-bottom: 50px; }
-        .navbar { background: var(--dark); padding: 15px 20px; text-align: center; color: white; margin-bottom: 30px; }
-        .nav-logo { color: var(--primary); text-decoration: none; font-size: 24px; font-weight: bold; }
+        :root { --main: #2c3e50; --accent: #3498db; --success: #27ae60; --bg: #f4f7f6; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); margin: 0; padding: 20px; direction: rtl; }
+        .search-container { max-width: 500px; margin: 50px auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
+        h1 { color: var(--main); margin-bottom: 25px; font-size: 24px; }
+        input { width: 100%; padding: 15px; margin-bottom: 15px; border: 2px solid #ddd; border-radius: 12px; outline: none; font-family: 'Cairo'; font-size: 18px; box-sizing: border-box; text-align: center; }
+        .btn-search { background: var(--main); color: white; border: none; padding: 15px 30px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: bold; font-size: 18px; transition: 0.3s; }
+        .btn-search:hover { background: var(--accent); }
         
-        .parents-container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
-        
-        .search-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; margin-bottom: 30px; }
-        .search-box { display: flex; gap: 10px; margin-top: 20px; }
-        input { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; outline: none; font-size: 16px; text-align: center; }
-        input:focus { border-color: var(--primary); }
-        .btn-search { background: var(--dark); color: white; border: none; padding: 0 25px; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: bold; }
-        .btn-search:hover { background: #1a252f; transform: scale(1.02); }
-
-        .results-wrapper { display: flex; flex-direction: column; gap: 20px; }
-        
-        /* تصميم كارت التقرير الجديد */
-        .result-card { background: white; padding: 25px; border-radius: 15px; border-right: 10px solid var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.05); animation: fadeIn 0.5s ease; }
-        .student-header { border-bottom: 2px inset #f1f1f1; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .student-header h3 { margin: 0; color: var(--dark); }
-        .code-badge { background: #eee; padding: 5px 12px; border-radius: 20px; font-size: 12px; color: #666; }
-
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .info-item { background: #f8f9fa; padding: 15px; border-radius: 10px; border: 1px solid #eee; display: flex; flex-direction: column; }
-        .info-item label { font-size: 12px; color: #7f8c8d; margin-bottom: 5px; font-weight: 600; }
-        .info-item span { font-weight: bold; color: var(--dark); font-size: 17px; }
-
-        /* تمييز الخانات الهامة */
-        .highlight-blue { background: #e3f2fd !important; border-color: var(--accent) !important; }
-        .highlight-green { background: #e8f5e9 !important; border-color: var(--success) !important; }
-        .highlight-green span { color: var(--success) !important; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } .search-box { flex-direction: column; } }
+        .result-card { display: none; max-width: 600px; margin: 20px auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); border-right: 8px solid var(--success); }
+        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed #eee; }
+        .info-row:last-child { border: none; }
+        .label { font-weight: bold; color: #7f8c8d; }
+        .value { color: var(--main); font-weight: 700; }
+        .no-data { color: #e74c3c; margin-top: 20px; display: none; }
     </style>
 </head>
 <body>
 
-    <nav class="navbar">
-        <a href="index.html" class="nav-logo">🌟 سنتر حلم نور</a>
-    </nav>
-
-    <div class="parents-container">
-        <div class="search-card">
-            <h2>🔍 استعلام عن مستوى الطالب</h2>
-            <p>أدخل كود الطالب لعرض تقارير الأداء والمواد</p>
-            <div class="search-box">
-                <input type="text" id="studentCodeInput" placeholder="اكتب كود الطالب هنا...">
-                <button class="btn-search" id="searchBtn" onclick="checkProgress()">بحث الآن</button>
-            </div>
-        </div>
-
-        <div id="resultArea" class="results-wrapper"></div>
+    <div class="search-container">
+        <h1>📊 متابعة مستوى الطالب</h1>
+        <input type="text" id="studentCodeInput" placeholder="أدخل كود الطالب هنا">
+        <button class="btn-search" onclick="searchProgress()">عرض التقرير الآن</button>
+        <p id="errorMsg" class="no-data">❌ عذراً، لا يوجد بيانات لهذا الكود</p>
     </div>
 
-    <script>
-        const SB_URL = 'https://viutmpktcgceyofuxmus.supabase.co'; 
-        const SB_KEY = 'sb_publishable_QoIPp4IFBEdES90fNOqbKg_6kIF0GeO';
-        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+    <div id="resultCard" class="result-card">
+        <h2 style="text-align: center; color: var(--success);">تقرير الأداء الدراسي ✅</h2>
+        
+        <div class="info-row">
+            <span class="label">اسم الطالب:</span>
+            <span id="resName" class="value"></span>
+        </div>
+        
+        <div class="info-row">
+            <span class="label">كود الطالب:</span>
+            <span id="resCode" class="value"></span>
+        </div>
+        
+        <div class="info-row">
+            <span class="label">المادة الدراسية:</span>
+            <span id="resSubject" class="value"></span>
+        </div>
+        
+        <div class="info-row">
+            <span class="label">الحضور والغياب:</span>
+            <span id="resAttend" class="value"></span>
+        </div>
+        
+        <div class="info-row">
+            <span class="label">مستوى الطالب (التفاعل):</span>
+            <span id="resInter" class="value" style="color: var(--accent);"></span>
+        </div>
+        
+        <div class="info-row">
+            <span class="label">درجة الامتحان:</span>
+            <span id="resGrade" class="value" style="color: #e67e22;"></span>
+        </div>
+    </div>
 
-        async function checkProgress() {
-            const inputField = document.getElementById('studentCodeInput');
-            const resultArea = document.getElementById('resultArea');
-            const searchBtn = document.getElementById('searchBtn');
-            const code = inputField.value.trim();
+<script>
+    const SUPABASE_URL = 'https://viutmpktcgceyofuxmus.supabase.co'; 
+    const SUPABASE_KEY = 'sb_publishable_QoIPp4IFBEdES90fNOqbKg_6kIF0GeO';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function searchProgress() {
+        const code = document.getElementById('studentCodeInput').value.trim();
+        const card = document.getElementById('resultCard');
+        const errorMsg = document.getElementById('errorMsg');
+
+        if(!code) return alert("من فضلك اكتب الكود أولاً");
+
+        // البحث في جدول student_progress باستخدام الكود
+        const { data, error } = await supabaseClient
+            .from('student_progress')
+            .select('*')
+            .eq('student_code', code)
+            .order('created_at', { ascending: false }) // يجيب أحدث درجة مضافة
+            .limit(1)
+            .single();
+
+        if (data) {
+            errorMsg.style.display = 'none';
+            card.style.display = 'block';
             
-            if(!code) { alert('أدخل كود الطالب أولاً'); return; }
-
-            searchBtn.innerText = "جاري البحث...";
-            searchBtn.disabled = true;
-            resultArea.innerHTML = ""; 
-
-            try {
-                const { data, error } = await supabaseClient
-                    .from('student_progress')
-                    .select('*')
-                    .eq('student_code', code)
-                    .order('created_at', { ascending: false });
-
-                if (error || !data || data.length === 0) {
-                    resultArea.innerHTML = `<div class="result-card" style="border-right-color: #e74c3c; text-align:center;"><h3>❌ الكود غير موجود</h3><p>تأكد من كتابة الكود بشكل صحيح أو تواصل مع السنتر.</p></div>`;
-                } else {
-                    const welcomeMsg = `<h2 style="text-align:center; color:var(--dark); margin-bottom:10px;">👤 تقرير الطالب: ${data[0].student_name}</h2>`;
-                    resultArea.insertAdjacentHTML('beforeend', welcomeMsg);
-
-                    data.forEach(item => {
-                        const card = `
-                            <div class="result-card">
-                                <div class="student-header">
-                                    <h3><i class="fas fa-book-open"></i> مادة: ${item.subject_name || 'عام'}</h3>
-                                    <span class="code-badge">كود الطالب: ${item.student_code}</span>
-                                </div>
-                                
-                                <div class="info-grid">
-                                    <div class="info-item highlight-blue">
-                                        <label><i class="fas fa-layer-group"></i> مستوى الطالب</label>
-                                        <span>${item.student_level || 'غير محدد'}</span>
-                                    </div>
-                                    
-                                    <div class="info-item highlight-green">
-                                        <label><i class="fas fa-award"></i> درجة الاختبار</label>
-                                        <span>${item.exam_grade || '0'}</span>
-                                    </div>
-
-                                    <div class="info-item">
-                                        <label><i class="fas fa-user-clock"></i> حالة الحضور</label>
-                                        <span>${item.attendance || '-'}</span>
-                                    </div>
-
-                                    <div class="info-item">
-                                        <label><i class="fas fa-brain"></i> التفاعل والمشاركة</label>
-                                        <span>${item.interaction || 'غير مسجل'}</span>
-                                    </div>
-
-                                    <div class="info-item" style="grid-column: span 2;">
-                                        <label><i class="fas fa-calendar-alt"></i> تاريخ تسجيل التقرير</label>
-                                        <span>${new Date(item.created_at).toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                        resultArea.insertAdjacentHTML('beforeend', card);
-                    });
-                }
-            } catch (err) {
-                alert('حدث خطأ في الاتصال بالقاعدة');
-            } finally {
-                searchBtn.innerText = "بحث الآن";
-                searchBtn.disabled = false;
-            }
+            // ربط الخانات اللي أنت طلبتها
+            document.getElementById('resName').innerText = data.student_name;
+            document.getElementById('resCode').innerText = data.student_code;
+            document.getElementById('resSubject').innerText = data.subject_name || 'غير محدد';
+            document.getElementById('resAttend').innerText = data.attendance;
+            document.getElementById('resInter').innerText = data.student_level || data.interaction || 'غير محدد';
+            document.getElementById('resGrade').innerText = data.exam_grade;
+        } else {
+            card.style.display = 'none';
+            errorMsg.style.display = 'block';
         }
-    </script>
+    }
+</script>
+
 </body>
 </html>
