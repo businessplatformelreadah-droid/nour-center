@@ -4,34 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>بوابة أولياء الأمور - سنتر حلم نور</title>
-    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #f1c40f; --dark: #2c3e50; --accent: #3498db; }
-        body { background: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
-        .parents-container { max-width: 800px; margin: 50px auto; padding: 20px; }
+        :root { --primary: #f1c40f; --dark: #2c3e50; --accent: #3498db; --success: #27ae60; }
+        body { background: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding-bottom: 50px; }
+        .navbar { background: var(--dark); padding: 15px 20px; text-align: center; color: white; margin-bottom: 30px; }
+        .nav-logo { color: var(--primary); text-decoration: none; font-size: 24px; font-weight: bold; }
+        
+        .parents-container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
+        
         .search-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; margin-bottom: 30px; }
         .search-box { display: flex; gap: 10px; margin-top: 20px; }
         input { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; outline: none; font-size: 16px; text-align: center; }
         input:focus { border-color: var(--primary); }
         .btn-search { background: var(--dark); color: white; border: none; padding: 0 25px; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: bold; }
-        
-        /* تصميم الكروت المتعددة */
-        .results-wrapper { display: flex; flex-direction: column; gap: 20px; }
-        .result-card { background: white; padding: 25px; border-radius: 12px; border-right: 8px solid var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.05); animation: fadeIn 0.5s ease; }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .info-item { background: #f8f9fa; padding: 15px; border-radius: 10px; border: 1px solid #eee; }
-        .info-item label { display: block; font-size: 13px; color: #7f8c8d; margin-bottom: 5px; }
-        .info-item span { font-weight: bold; color: var(--dark); font-size: 18px; }
-        
-        .subject-badge { background: var(--accent) !important; border: none !important; color: white !important; }
-        .subject-badge label { color: rgba(255,255,255,0.8) !important; }
+        .btn-search:hover { background: #1a252f; transform: scale(1.02); }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .results-wrapper { display: flex; flex-direction: column; gap: 20px; }
+        
+        /* تصميم كارت التقرير الجديد */
+        .result-card { background: white; padding: 25px; border-radius: 15px; border-right: 10px solid var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.05); animation: fadeIn 0.5s ease; }
+        .student-header { border-bottom: 2px inset #f1f1f1; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .student-header h3 { margin: 0; color: var(--dark); }
+        .code-badge { background: #eee; padding: 5px 12px; border-radius: 20px; font-size: 12px; color: #666; }
+
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .info-item { background: #f8f9fa; padding: 15px; border-radius: 10px; border: 1px solid #eee; display: flex; flex-direction: column; }
+        .info-item label { font-size: 12px; color: #7f8c8d; margin-bottom: 5px; font-weight: 600; }
+        .info-item span { font-weight: bold; color: var(--dark); font-size: 17px; }
+
+        /* تمييز الخانات الهامة */
+        .highlight-blue { background: #e3f2fd !important; border-color: var(--accent) !important; }
+        .highlight-green { background: #e8f5e9 !important; border-color: var(--success) !important; }
+        .highlight-green span { color: var(--success) !important; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } .search-box { flex-direction: column; } }
     </style>
 </head>
 <body>
@@ -43,7 +52,7 @@
     <div class="parents-container">
         <div class="search-card">
             <h2>🔍 استعلام عن مستوى الطالب</h2>
-            <p>أدخل كود الطالب لمتابعة تقارير جميع المواد</p>
+            <p>أدخل كود الطالب لعرض تقارير الأداء والمواد</p>
             <div class="search-box">
                 <input type="text" id="studentCodeInput" placeholder="اكتب كود الطالب هنا...">
                 <button class="btn-search" id="searchBtn" onclick="checkProgress()">بحث الآن</button>
@@ -64,47 +73,57 @@
             const searchBtn = document.getElementById('searchBtn');
             const code = inputField.value.trim();
             
-            if(!code) { alert('أدخل كود الطالب'); return; }
+            if(!code) { alert('أدخل كود الطالب أولاً'); return; }
 
             searchBtn.innerText = "جاري البحث...";
             searchBtn.disabled = true;
-            resultArea.innerHTML = ""; // مسح النتائج القديمة
+            resultArea.innerHTML = ""; 
 
             try {
-                // شلنا .single() واستخدمنا البحث العادي لجلب "كل" الصفوف اللي ليها نفس الكود
                 const { data, error } = await supabaseClient
                     .from('student_progress')
                     .select('*')
                     .eq('student_code', code)
-                    .order('created_at', { ascending: false }); // ترتيب من الأحدث للأقدم
+                    .order('created_at', { ascending: false });
 
                 if (error || !data || data.length === 0) {
-                    resultArea.innerHTML = `<div class="result-card" style="border-right-color: #e74c3c;"><h3>❌ لا توجد بيانات لهذا الكود</h3></div>`;
+                    resultArea.innerHTML = `<div class="result-card" style="border-right-color: #e74c3c; text-align:center;"><h3>❌ الكود غير موجود</h3><p>تأكد من كتابة الكود بشكل صحيح أو تواصل مع السنتر.</p></div>`;
                 } else {
-                    // عرض اسم الطالب مرة واحدة فوق
-                    const welcomeMsg = `<h2 style="text-align:center; color:var(--dark);">تقارير الطالب: ${data[0].student_name}</h2>`;
+                    const welcomeMsg = `<h2 style="text-align:center; color:var(--dark); margin-bottom:10px;">👤 تقرير الطالب: ${data[0].student_name}</h2>`;
                     resultArea.insertAdjacentHTML('beforeend', welcomeMsg);
 
-                    // عمل Loop لعرض كل مادة في كارت لوحدها
                     data.forEach(item => {
                         const card = `
                             <div class="result-card">
+                                <div class="student-header">
+                                    <h3><i class="fas fa-book-open"></i> مادة: ${item.subject_name || 'عام'}</h3>
+                                    <span class="code-badge">كود الطالب: ${item.student_code}</span>
+                                </div>
+                                
                                 <div class="info-grid">
-                                    <div class="info-item subject-badge">
-                                        <label><i class="fas fa-book"></i> المادة</label>
-                                        <span>${item.subject_name || 'عام'}</span>
+                                    <div class="info-item highlight-blue">
+                                        <label><i class="fas fa-layer-group"></i> مستوى الطالب</label>
+                                        <span>${item.student_level || 'غير محدد'}</span>
                                     </div>
-                                    <div class="info-item">
-                                        <label><i class="fas fa-star"></i> الدرجة</label>
-                                        <span style="color: #27ae60;">${item.exam_grade || '0'}</span>
+                                    
+                                    <div class="info-item highlight-green">
+                                        <label><i class="fas fa-award"></i> درجة الاختبار</label>
+                                        <span>${item.exam_grade || '0'}</span>
                                     </div>
+
                                     <div class="info-item">
-                                        <label><i class="fas fa-user-check"></i> الحضور</label>
+                                        <label><i class="fas fa-user-clock"></i> حالة الحضور</label>
                                         <span>${item.attendance || '-'}</span>
                                     </div>
+
                                     <div class="info-item">
-                                        <label><i class="fas fa-calendar-day"></i> التاريخ</label>
-                                        <span>${new Date(item.created_at).toLocaleDateString('ar-EG')}</span>
+                                        <label><i class="fas fa-brain"></i> التفاعل والمشاركة</label>
+                                        <span>${item.interaction || 'غير مسجل'}</span>
+                                    </div>
+
+                                    <div class="info-item" style="grid-column: span 2;">
+                                        <label><i class="fas fa-calendar-alt"></i> تاريخ تسجيل التقرير</label>
+                                        <span>${new Date(item.created_at).toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
                                     </div>
                                 </div>
                             </div>
@@ -113,7 +132,7 @@
                     });
                 }
             } catch (err) {
-                alert('خطأ في الاتصال');
+                alert('حدث خطأ في الاتصال بالقاعدة');
             } finally {
                 searchBtn.innerText = "بحث الآن";
                 searchBtn.disabled = false;
