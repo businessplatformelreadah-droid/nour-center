@@ -13,6 +13,7 @@
         .parents-container { max-width: 800px; margin: 50px auto; padding: 20px; }
         .search-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
         .search-box { display: flex; gap: 10px; margin-top: 20px; }
+        /* تغيير هنا ليدعم النص */
         input { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; outline: none; font-size: 16px; text-align: center; }
         input:focus { border-color: var(--primary); }
         .btn-search { background: var(--dark); color: white; border: none; padding: 0 25px; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: bold; }
@@ -24,7 +25,6 @@
         .info-item label { display: block; font-size: 13px; color: #7f8c8d; margin-bottom: 5px; }
         .info-item span { font-weight: bold; color: var(--dark); font-size: 18px; }
         
-        /* تمييز خانة المادة */
         .subject-badge { background: var(--accent) !important; border: none !important; }
         .subject-badge span { color: white !important; }
         .subject-badge label { color: rgba(255,255,255,0.8) !important; }
@@ -50,9 +50,9 @@
     <div class="parents-container">
         <div class="search-card">
             <h2>🔍 استعلام عن مستوى الطالب</h2>
-            <p>أدخل كود الطالب المكون من أرقام لمتابعة الدرجات والغياب</p>
+            <p>أدخل كود الطالب (أرقام أو حروف) لمتابعة التقرير</p>
             <div class="search-box">
-                <input type="number" id="studentCodeInput" placeholder="اكتب كود الطالب هنا...">
+                <input type="text" id="studentCodeInput" placeholder="اكتب كود الطالب هنا...">
                 <button class="btn-search" id="searchBtn" onclick="checkProgress()">بحث الآن</button>
             </div>
         </div>
@@ -61,7 +61,6 @@
     </div>
 
     <script>
-        // تم تحديث الـ Keys بناءً على كود الأدمن الخاص بك
         const SB_URL = 'https://viutmpktcgceyofuxmus.supabase.co'; 
         const SB_KEY = 'sb_publishable_QoIPp4IFBEdES90fNOqbKg_6kIF0GeO';
 
@@ -82,52 +81,52 @@
             searchBtn.disabled = true;
 
             try {
-                // جلب أحدث سجل للطالب (order by id descending)
+                // البحث بالكود (نص) وترتيب النتائج لجلب الأحدث
                 const { data, error } = await supabaseClient
                     .from('student_progress')
                     .select('*')
                     .eq('student_code', code)
                     .order('id', { ascending: false })
-                    .limit(1)
-                    .single();
+                    .limit(1);
 
                 resultArea.style.display = 'block';
 
-                if (error || !data) {
+                if (error || !data || data.length === 0) {
                     resultArea.innerHTML = `
                         <div class="result-card" style="border-right-color: #e74c3c;">
                             <h3 style="color: #e74c3c;">❌ لم يتم العثور على بيانات</h3>
-                            <p>تأكد من كتابة الكود بشكل صحيح، أو تواصل مع إدارة السنتر لتسجيل الكود.</p>
+                            <p>تأكد من كتابة الكود بشكل صحيح (حروف أو أرقام)، أو تواصل مع الإدارة.</p>
                         </div>`;
                 } else {
+                    const studentData = data[0];
                     resultArea.innerHTML = `
                         <div class="result-card">
-                            <h3 style="margin-top:0; color:var(--dark);">تقرير الطالب: ${data.student_name}</h3>
+                            <h3 style="margin-top:0; color:var(--dark);">تقرير الطالب: ${studentData.student_name}</h3>
                             
                             <div class="info-grid">
                                 <div class="info-item subject-badge">
                                     <label><i class="fas fa-book"></i> المادة الدراسية</label>
-                                    <span>${data.subject_name || 'عام'}</span>
+                                    <span>${studentData.subject_name || 'عام'}</span>
                                 </div>
 
                                 <div class="info-item">
                                     <label><i class="fas fa-star"></i> درجة الاختبار</label>
-                                    <span style="color: #27ae60;">${data.exam_grade || '0'}</span>
+                                    <span style="color: #27ae60;">${studentData.exam_grade || '0'}</span>
                                 </div>
 
                                 <div class="info-item">
                                     <label><i class="fas fa-user-check"></i> حالة الحضور</label>
-                                    <span>${data.attendance || 'غير مسجل'}</span>
+                                    <span>${studentData.attendance || 'غير مسجل'}</span>
                                 </div>
 
                                 <div class="info-item">
                                     <label><i class="fas fa-comments"></i> التفاعل</label>
-                                    <span>${data.interaction || 'غير مسجل'}</span>
+                                    <span>${studentData.interaction || 'غير مسجل'}</span>
                                 </div>
 
                                 <div class="info-item" style="grid-column: span 1;">
                                     <label><i class="fas fa-calendar-alt"></i> تاريخ التحديث</label>
-                                    <span>${new Date(data.created_at).toLocaleDateString('ar-EG')}</span>
+                                    <span>${new Date(studentData.created_at).toLocaleDateString('ar-EG')}</span>
                                 </div>
                             </div>
                         </div>
