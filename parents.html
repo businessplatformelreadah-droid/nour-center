@@ -3,80 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>متابعة مستوى الطالب | حلم نور</title>
+    <title>بوابة أولياء الأمور - سنتر حلم نور</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Cairo', sans-serif; background: #f4f7f6; direction: rtl; padding: 20px; }
-        .container { max-width: 600px; margin: auto; }
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center; }
-        input { width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 18px; text-align: center; box-sizing: border-box; }
-        button { background: #27ae60; color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-size: 18px; width: 100%; }
-        table { width: 100%; margin-top: 20px; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; }
-        th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
-        th { background: #2c3e50; color: white; }
-        .header { margin-bottom: 20px; color: #2c3e50; }
+        :root { --primary: #f1c40f; --dark: #2c3e50; }
+        body { background: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .parents-container { max-width: 800px; margin: 50px auto; padding: 20px; }
+        .search-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
+        .search-box { display: flex; gap: 10px; margin-top: 20px; }
+        input { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; outline: none; font-size: 16px; }
+        input:focus { border-color: var(--primary); }
+        .btn-search { background: var(--dark); color: white; border: none; padding: 0 25px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .btn-search:hover { background: #1a252f; }
+        #resultArea { margin-top: 30px; display: none; }
+        .result-card { background: white; padding: 20px; border-radius: 12px; border-right: 5px solid var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .info-item { background: #f8f9fa; padding: 10px; border-radius: 5px; }
+        .info-item label { display: block; font-size: 12px; color: #7f8c8d; }
+        .info-item span { font-weight: bold; color: var(--dark); }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="card">
-        <h2 class="header">👨‍👩‍👧‍👦 بوابة أولياء الأمور</h2>
-        <p>أدخل كود الطالب لمتابعة مستواه ودرجاته</p>
-        <input type="text" id="parentCode" placeholder="أدخل كود الطالب هنا">
-        <button onclick="getStudentReport()">عرض التقرير 📊</button>
-    </div>
+    <nav class="navbar">
+        <a href="index.html" class="nav-logo">🌟 سنتر حلم نور</a>
+    </nav>
 
-    <div id="reportArea" style="display:none; margin-top:30px;">
-        <div class="card">
-            <h3 id="studentDisplayName" style="color:#27ae60;"></h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>البيان</th>
-                        <th>الحالة / الدرجة</th>
-                    </tr>
-                </thead>
-                <tbody id="reportTableBody"></tbody>
-            </table>
-            <p id="reportDate" style="margin-top:15px; font-size:14px; color:#666;"></p>
+    <div class="parents-container">
+        <div class="search-card">
+            <h2>🔍 استعلام عن مستوى الطالب</h2>
+            <p>أدخل كود الطالب المكون من أرقام لمتابعة الدرجات والغياب</p>
+            <div class="search-box">
+                <input type="text" id="studentCodeInput" placeholder="أدخل كود الطالب هنا...">
+                <button class="btn-search" onclick="checkProgress()">بحث</button>
+            </div>
         </div>
+
+        <div id="resultArea">
+            </div>
     </div>
-</div>
 
-<script>
-    const SUPABASE_URL = 'https://viutmpktcgceyofuxmus.supabase.co'; 
-    const SUPABASE_KEY = 'sb_publishable_QoIPp4IFBEdES90fNOqbKg_6kIF0GeO';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <script>
+        // بيانات سوبابيز (حط بياناتك هنا زي ملف الأدمن)
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    async function getStudentReport() {
-        const code = document.getElementById('parentCode').value.trim();
-        if(!code) return alert("يرجى إدخال الكود");
+        async function checkProgress() {
+            const code = document.getElementById('studentCodeInput').value;
+            const resultArea = document.getElementById('resultArea');
+            
+            if(!code) { alert('من فضلك أدخل الكود'); return; }
 
-        const { data, error } = await supabaseClient
-            .from('student_progress')
-            .select('*')
-            .eq('student_code', code)
-            .order('id', { ascending: false })
-            .limit(1); // عرض آخر تحديث
+            const { data, error } = await supabase
+                .from('student_progress')
+                .select('*')
+                .eq('student_code', code)
+                .single();
 
-        if (error || !data || data.length === 0) {
-            return alert("الكود غير صحيح أو لم يتم تسجيل بيانات بعد");
+            if (error || !data) {
+                resultArea.style.display = 'block';
+                resultArea.innerHTML = '<div class="result-card" style="border-right-color: #e74c3c;">❌ عذراً، لم يتم العثور على بيانات لهذا الكود.</div>';
+            } else {
+                resultArea.style.display = 'block';
+                resultArea.innerHTML = `
+                    <div class="result-card">
+                        <h3>تقرير الطالب: ${data.student_name}</h3>
+                        <div class="info-grid">
+                            <div class="info-item"><label>الحضور</label><span>${data.attendance}</span></div>
+                            <div class="info-item"><label>التفاعل</label><span>${data.interaction}</span></div>
+                            <div class="info-item"><label>درجة آخر اختبار</label><span style="color: #27ae60;">${data.exam_grade}</span></div>
+                            <div class="info-item"><label>تاريخ التحديث</label><span>${new Date(data.created_at).toLocaleDateString('ar-EG')}</span></div>
+                        </div>
+                    </div>
+                `;
+            }
         }
-
-        const s = data[0];
-        document.getElementById('reportArea').style.display = 'block';
-        document.getElementById('studentDisplayName').innerText = "طالب: " + s.student_name;
-        
-        document.getElementById('reportTableBody').innerHTML = `
-            <tr><td>كود الطالب</td><td><b>${s.student_code}</b></td></tr>
-            <tr><td>الحضور والغياب</td><td>${s.attendance}</td></tr>
-            <tr><td>مستوى التفاعل</td><td>${s.interaction}</td></tr>
-            <tr><td>درجة الامتحان</td><td><b style="color:#e74c3c;">${s.exam_grade}</b></td></tr>
-        `;
-        document.getElementById('reportDate').innerText = "تاريخ التحديث: " + new Date(s.created_at).toLocaleDateString('ar-EG');
-    }
-</script>
+    </script>
 </body>
 </html>
