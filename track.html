@@ -28,20 +28,24 @@
         const SUPABASE_KEY = 'sb_publishable_QoIPp4IFBEdES90fNOqbKg_6kIF0GeO';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // دالة مطورة جداً لجلب تفاصيل الجهاز بدقة
+        // الدالة الجديدة لاستخراج موديل الموبايل بدقة
         function getDeviceDetailedName() {
             const ua = navigator.userAgent;
             let deviceDetail = "جهاز غير معروف";
 
             if (/android/i.test(ua)) {
-                // محاولة استخراج موديل الهاتف بين الأقواس
-                const modelMatch = ua.match(/\(([^;]+);\s+([^;)]+)\)/);
-                if (modelMatch && modelMatch[2]) {
-                    deviceDetail = "أندرويد (" + modelMatch[2].trim() + ")";
+                // مصفوفة لمحاولة صيد موديل الموبايل من نصوص الـ User Agent
+                const androidMatch = ua.match(/Android\s+([^\s;]+);?\s+([^;)]+)/);
+                if (androidMatch) {
+                    let model = androidMatch[2].trim();
+                    // تنظيف الموديل من الكلمات الزائدة
+                    model = model.split('Build/')[0].trim();
+                    deviceDetail = "أندرويد (" + model + ")";
                 } else {
                     deviceDetail = "جهاز أندرويد";
                 }
             } else if (/iPad|iPhone|iPod/.test(ua)) {
+                // للآيفون المتصفح لا يعطي الموديل (مثل iPhone 13) بل يعطي iPhone فقط للخصوصية
                 deviceDetail = "آيفون/آيباد (iOS)";
             } else if (/Windows NT/i.test(ua)) {
                 deviceDetail = "كمبيوتر (Windows)";
@@ -68,7 +72,6 @@
             resultsArea.innerHTML = "";
 
             try {
-                // 1. البحث عن بيانات الطالب
                 const { data: subs, error: subError } = await supabaseClient
                     .from('user_subscriptions')
                     .select('*')
@@ -86,19 +89,17 @@
                     return;
                 }
 
-                // --- 🛡️ نظام بصمة الجهاز المطور ---
                 let localDeviceID = localStorage.getItem('my_device_id');
                 const detailedDeviceName = getDeviceDetailedName(); 
                 const firstSub = subs[0];
 
-                // إنشاء بصمة لو مش موجودة
                 if (!localDeviceID) {
                     localDeviceID = 'dev-' + Math.random().toString(36).substr(2, 9) + Date.now();
                     localStorage.setItem('my_device_id', localDeviceID);
                 }
 
-                if (!firstSub.device_id) {
-                    // أول دخول للحساب: نربطه بالجهاز الحالي فوراً
+                // تحديث البيانات لو الخانة فاضية (أول دخول بالكود الجديد)
+                if (!firstSub.device_id || firstSub.device_name === "موبايل") {
                     const { error: upError } = await supabaseClient
                         .from('user_subscriptions')
                         .update({ 
@@ -109,28 +110,25 @@
                         
                     if(upError) throw upError;
                     
-                    alert("✅ تم ربط حسابك بهذا الجهاز بنجاح: " + detailedDeviceName);
-                    // تحديث البيانات محلياً عشان القارئ يكمل صح
+                    alert("✅ تم ربط جهازك: " + detailedDeviceName);
                     firstSub.device_id = localDeviceID;
                     firstSub.device_name = detailedDeviceName;
                 } 
 
-                // تحقق من البصمة (هل الجهاز الحالي هو المسجل؟)
+                // التحقق من الحماية
                 if (firstSub.device_id !== localDeviceID) {
                     btn.disabled = false;
                     btn.innerText = "بحث عن اشتراكاتي";
                     resultsArea.innerHTML = `
                         <div style="background:#fff3cd; color:#856404; padding:15px; border-radius:10px; border: 1px solid #ffeeba; text-align:center;">
                             ⚠️ عذراً، هذا الحساب مرتبط بجهاز آخر: <br>
-                            <b style="color:#d35400;">(${firstSub.device_name || 'غير معروف'})</b> <br><br>
-                            يرجى استخدامه من الجهاز الأول أو التواصل مع الإدارة لتصفير الجهاز.
+                            <b style="color:#d35400;">(${firstSub.device_name})</b> <br><br>
+                            يرجى استخدامه من الجهاز الأصلي.
                         </div>`;
                     return;
                 }
-                // --- نهاية نظام الحماية ---
 
                 resultsArea.innerHTML = "<h3 style='margin-bottom:15px;'>حصصك المتاحة حالياً:</h3>";
-
                 for (let sub of subs) {
                     await displayCategoryLessons(sub.category, resultsArea);
                 }
@@ -139,8 +137,8 @@
                 btn.innerText = "تحديث القائمة 🔄";
 
             } catch (err) {
-                console.error("Error details:", err);
-                resultsArea.innerHTML = "<p style='color:red'>عذراً، حدث خطأ تقني. يرجى المحاولة لاحقاً.</p>";
+                console.error("Error:", err);
+                resultsArea.innerHTML = "<p style='color:red'>حدث خطأ تقني.</p>";
                 btn.disabled = false;
                 btn.innerText = "بحث عن اشتراكاتي";
             }
@@ -148,11 +146,11 @@
 
         async function displayCategoryLessons(category, container) {
             const sectionBox = document.createElement('div');
-            sectionBox.style = "background:#f9f9f9; padding:15px; border-radius:15px; margin-bottom:15px; border-right:5px solid #3498db; text-align:right; box-shadow: 0 2px 5px rgba(0,0,0,0.05);";
+            sectionBox.style = "background:#f9f9f9; padding:15px; border-radius:15px; margin-bottom:15px; border-right:5px solid #3498db; text-align:right;";
             sectionBox.innerHTML = `<h3 style="margin:0 0 10px 0; color:#2c3e50; font-size:18px;">📚 قسم: ${category}</h3>`;
             container.appendChild(sectionBox);
 
-            const { data: lessons, error: lessonError } = await supabaseClient
+            const { data: lessons } = await supabaseClient
                 .from('lessons')
                 .select('*')
                 .eq('category', category.trim());
@@ -161,15 +159,13 @@
                 lessons.forEach((video, index) => {
                     const btn = document.createElement('button');
                     btn.className = 'btn-main-hero';
-                    btn.style = "background:linear-gradient(135deg, #3498db, #2980b9); width:100%; margin-bottom:8px; padding:12px; font-size:15px; border:none; color:white; border-radius:10px; cursor:pointer; display:block; text-align:right;";
+                    btn.style = "background:linear-gradient(135deg, #3498db, #2980b9); width:100%; margin-bottom:8px; padding:12px; color:white; border-radius:10px; cursor:pointer; border:none; text-align:right;";
                     btn.innerHTML = `🎬 حصة (${index + 1}): ${video.title}`;
                     btn.onclick = () => {
                         location.href = `video-player.html?video=${encodeURIComponent(video.url)}&title=${encodeURIComponent(video.title)}`;
                     };
                     sectionBox.appendChild(btn);
                 });
-            } else {
-                sectionBox.innerHTML += `<p style='color:#888; font-size:14px; margin:10px 0 0 0;'>مفعل، بانتظار رفع حصص هذا القسم...</p>`;
             }
         }
     </script>
