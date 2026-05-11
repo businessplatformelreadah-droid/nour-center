@@ -251,4 +251,127 @@
         const pBody = document.getElementById('progressListBody');
         let { data: list } = await supabaseClient.from('student_progress').select('*').order('id', { ascending: false });
         
-        pBody.innerHTML = list?.map(p =>
+        pBody.innerHTML = list?.map(p => `
+            <tr>
+                <td>${p.student_name}</td>
+                <td><b>${p.student_code}</b></td>
+                <td style="color:var(--accent); font-weight:bold;">${p.subject_name || 'غير محدد'}</td> 
+                <td style="color:var(--success); font-weight:bold;">${p.student_level || p.interaction || 'غير محدد'}</td>
+                <td style="color:var(--danger); font-weight:bold;">${p.exam_grade}</td>
+                <td>${new Date(p.created_at).toLocaleDateString('ar-EG')}</td>
+                <td><button class="btn btn-del" style="padding:5px 10px;" onclick="deleteProgress(${p.id})">🗑️ حذف</button></td>
+            </tr>
+        `).join('') || "<tr><td colspan='7'>لا توجد سجلات حالياً</td></tr>";
+    }
+
+    async function deleteProgress(id) {
+        if(confirm('هل تريد حذف سجل درجات هذا الطالب؟')) {
+            await supabaseClient.from('student_progress').delete().eq('id', id);
+            renderProgress();
+        }
+    }
+
+    // باقي الدوال كما هي...
+    function cleanYoutubeUrl(url) {
+        if (!url) return null;
+        url = url.trim();
+        const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+        const match = url.match(regExp);
+        if (match && match[7].length === 11) return match[7];
+        if (url.includes('shorts/')) {
+            const parts = url.split('shorts/');
+            if(parts[1]) {
+                const id = parts[1].split(/[?&]/)[0];
+                if(id.length === 11) return id;
+            }
+        }
+        return url.length === 11 ? url : null;
+    }
+
+    async function saveVideo() {
+        const cat = document.getElementById('catInput').value;
+        const name = document.getElementById('lessonName').value.trim();
+        const rawUrl = document.getElementById('videoUrl').value.trim();
+        if(!cat || !name || !rawUrl) return alert("يرجى إكمال كافة بيانات الفيديو");
+        const videoId = cleanYoutubeUrl(rawUrl);
+        if(!videoId) return alert("⚠️ رابط اليوتيوب غير صحيح!");
+        const { error } = await supabaseClient.from('lessons').insert([{ category: cat, title: name, url: videoId }]);
+        if(!error) { 
+            alert("✅ تم نشر فيديو الحصة بنجاح!"); 
+            document.getElementById('lessonName').value = "";
+            document.getElementById('videoUrl').value = "";
+            renderVideos(); 
+        }
+    }
+
+    async function renderVideos() {
+        const vBody = document.getElementById('videoListBody');
+        let { data } = await supabaseClient.from('lessons').select('*').order('id', { ascending: false });
+        vBody.innerHTML = data?.map(v => `<tr><td>${v.category}</td><td>${v.title}</td><td><button class="btn btn-del" onclick="deleteVideo(${v.id})">حذف 🗑️</button></td></tr>`).join('') || "";
+    }
+
+    async function deleteVideo(id) {
+        if(confirm('حذف هذا الفيديو؟')) { await supabaseClient.from('lessons').delete().eq('id', id); renderVideos(); }
+    }
+
+    async function addExam() {
+        const cat = document.getElementById('examCat').value;
+        const type = document.getElementById('examType').value;
+        const title = document.getElementById('examTitle').value.trim();
+        const url = document.getElementById('examUrl').value.trim();
+        if(!cat || !title || !url) return alert("يرجى إكمال بيانات الاختبار");
+        const { error } = await supabaseClient.from('exams_data').insert([{ category: cat, type: type, title: title, url: url }]);
+        if(!error) { alert("✅ تم نشر الاختبار!"); renderExams(); }
+    }
+
+    async function renderExams() {
+        const eBody = document.getElementById('examListBody');
+        let { data } = await supabaseClient.from('exams_data').select('*').order('id', { ascending: false });
+        eBody.innerHTML = data?.map(ex => `<tr><td>${ex.category}</td><td>${ex.type}</td><td>${ex.title}</td><td><a href="${ex.url}" target="_blank">معاينة</a></td><td><button class="btn btn-del" onclick="deleteExam(${ex.id})">حذف 🗑️</button></td></tr>`).join('') || "";
+    }
+
+    async function deleteExam(id) {
+        if(confirm('حذف الملف؟')) { await supabaseClient.from('exams_data').delete().eq('id', id); renderExams(); }
+    }
+
+    async function renderRequests() {
+        const rBody = document.getElementById('requestBody');
+        let { data: reqs } = await supabaseClient.from('course_requests').select('*').order('id', { ascending: false });
+        rBody.innerHTML = reqs?.map(r => `<tr><td>${r.name}</td><td>${r.phone}</td><td>${r.category}</td><td><button class="btn btn-view" onclick="showImg('${r.screen}')">👁️ عرض</button></td><td><button class="btn" style="background:var(--success)" onclick="approveUser('${r.id}','${r.phone}','${r.category}')">قبول ✅</button><button class="btn btn-del" onclick="rejectUser('${r.id}')">رفض ❌</button></td></tr>`).join('') || "";
+    }
+
+    async function approveUser(id, phone, category) {
+        await supabaseClient.from('user_subscriptions').insert([{ phone: String(phone), category: category }]);
+        await supabaseClient.from('course_requests').delete().eq('id', id);
+        alert("✅ تم التفعيل");
+        renderAll();
+    }
+
+    async function rejectUser(id) {
+        if(confirm('حذف الطلب؟')) { await supabaseClient.from('course_requests').delete().eq('id', id); renderRequests(); }
+    }
+
+    async function renderActiveUsers() {
+        const uBody = document.getElementById('userListBody');
+        let { data: subs } = await supabaseClient.from('user_subscriptions').select('*').order('id', { ascending: false });
+        uBody.innerHTML = subs?.map(s => `<tr><td>${s.phone}</td><td>${s.category}</td><td>${s.device_name || 'لم يدخل بعد'}</td><td><button class="btn" style="background:#f39c12; font-size:12px;" onclick="resetDevice(${s.id},'${s.phone}')">تصفير 🔄</button><button class="btn btn-del" style="font-size:12px;" onclick="kickUser(${s.id})">حذف 🗑️</button></td></tr>`).join('') || "";
+    }
+
+    async function resetDevice(id, phone) {
+        if(confirm(`تصفير جهاز ${phone}؟`)) {
+            await supabaseClient.from('user_subscriptions').update({ device_id: null, device_name: null }).eq('id', id);
+            renderActiveUsers();
+        }
+    }
+
+    async function kickUser(id) {
+        if(confirm('حذف المشترك؟')) { await supabaseClient.from('user_subscriptions').delete().eq('id', id); renderActiveUsers(); }
+    }
+
+    function showImg(src) { 
+        document.getElementById('modalImg').src = src; 
+        document.getElementById('imgModal').style.display = 'flex'; 
+    }
+</script>
+</body>
+</html>
