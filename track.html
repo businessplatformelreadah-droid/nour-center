@@ -15,7 +15,7 @@
             <h1>تتبع حالة اشتراكك 🔍</h1>
             <p style="color:#666; margin-bottom:20px;">أدخل رقم الموبايل لعرض كل حصصك المفعلة</p>
             <input type="text" id="searchPhone" placeholder="أدخل رقم موبايلك هنا" style="width:100%; padding:15px; border-radius:10px; border:2px solid #ddd; font-family:'Cairo'; font-size:18px; text-align:center; outline:none; margin-bottom:15px;">
-            <button class="btn-main-hero" style="width:100%" onclick="checkStatus()">بحث عن اشتراكاتي</button>
+            <button id="mainBtn" class="btn-main-hero" style="width:100%" onclick="checkStatus()">بحث عن اشتراكاتي</button>
             
             <div id="resultsArea" style="margin-top:25px;"></div>
         </div>
@@ -29,19 +29,21 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function checkStatus() {
-            // تنظيف رقم الهاتف من أي مسافات
             const phone = document.getElementById('searchPhone').value.trim();
             const resultsArea = document.getElementById('resultsArea');
+            const btn = document.getElementById('mainBtn');
 
             if (phone.length < 11) {
                 alert("برجاء إدخال رقم موبايل صحيح مكون من 11 رقم");
                 return;
             }
 
-            resultsArea.innerHTML = "<p style='color: var(--accent);'>جاري فحص الاشتراكات... 🔄</p>";
+            btn.disabled = true;
+            btn.innerText = "جاري فحص الجهاز والاشتراك... 🔄";
+            resultsArea.innerHTML = "";
 
             try {
-                // 1. البحث عن اشتراكات الطالب
+                // 1. البحث عن بيانات الطالب واشتراكاته
                 const { data: subs, error: subError } = await supabaseClient
                     .from('user_subscriptions')
                     .select('*')
@@ -50,49 +52,86 @@
                 if (subError) throw subError;
 
                 if (!subs || subs.length === 0) {
+                    btn.disabled = false;
+                    btn.innerText = "بحث عن اشتراكاتي";
                     resultsArea.innerHTML = `
                         <div style="background:#ffebee; color:#c62828; padding:15px; border-radius:10px; border: 1px solid #ef9a9a;">
                             لا توجد اشتراكات مفعلة لهذا الرقم (<b>${phone}</b>) حالياً. 
-                            <br><small>تأكد من الرقم، أو تواصل مع الدعم الفني لتفعيل حسابك.</small>
                         </div>`;
                     return;
                 }
 
+                // --- 🛡️ نظام بصمة الجهاز (Device Fingerprint) ---
+                let localDeviceID = localStorage.getItem('my_device_id');
+                const currentDeviceName = navigator.userAgent.includes("Mobi") ? "موبايل" : "كمبيوتر/لاب توب";
+                const firstSub = subs[0]; // نستخدم أول اشتراك للتحقق من الجهاز
+
+                if (!firstSub.device_id) {
+                    // أول مرة يدخل: توليد بصمة وربطها بالحساب
+                    if (!localDeviceID) {
+                        localDeviceID = 'dev-' + Math.random().toString(36).substr(2, 9) + Date.now();
+                        localStorage.setItem('my_device_id', localDeviceID);
+                    }
+                    
+                    // تحديث بصمة الجهاز في كل اشتراكات هذا الرقم
+                    await supabaseClient
+                        .from('user_subscriptions')
+                        .update({ device_id: localDeviceID, device_name: currentDeviceName })
+                        .eq('phone', phone);
+                        
+                    alert("✅ تم ربط حسابك بهذا الجهاز بنجاح. لا يمكنك الدخول من جهاز آخر.");
+                } else {
+                    // الحساب مربوط بجهاز.. هل المتصفح الحالي يملك نفس البصمة؟
+                    if (firstSub.device_id !== localDeviceID) {
+                        btn.disabled = false;
+                        btn.innerText = "بحث عن اشتراكاتي";
+                        resultsArea.innerHTML = `
+                            <div style="background:#fff3cd; color:#856404; padding:15px; border-radius:10px; border: 1px solid #ffeeba;">
+                                ⚠️ هذا الحساب مفعل على جهاز آخر. <br>
+                                يرجى تسجيل الدخول من جهازك الأساسي أو التواصل مع الإدارة.
+                            </div>`;
+                        return;
+                    }
+                }
+                // --- نهاية نظام الحماية ---
+
                 resultsArea.innerHTML = "<h3 style='margin-bottom:15px;'>حصصك المتاحة حالياً:</h3>";
 
-                // 2. عرض الدروس لكل قسم
+                // 2. عرض الدروس لكل قسم مشترك فيه
                 for (let sub of subs) {
                     await displayCategoryLessons(sub.category, resultsArea);
                 }
+                
+                btn.disabled = false;
+                btn.innerText = "تحديث القائمة 🔄";
 
             } catch (err) {
                 console.error("Error details:", err);
                 resultsArea.innerHTML = "<p style='color:red'>عذراً، حدث خطأ تقني. يرجى المحاولة لاحقاً.</p>";
+                btn.disabled = false;
+                btn.innerText = "بحث عن اشتراكاتي";
             }
         }
 
         async function displayCategoryLessons(category, container) {
-            // إنشاء صندوق القسم
             const sectionBox = document.createElement('div');
-            sectionBox.className = "category-card"; // تأكد من وجود ستايل لها أو استخدم الستايل المباشر
             sectionBox.style = "background:#f9f9f9; padding:15px; border-radius:15px; margin-bottom:15px; border-right:5px solid var(--accent); text-align:right; box-shadow: 0 2px 5px rgba(0,0,0,0.05);";
             sectionBox.innerHTML = `<h3 style="margin:0 0 10px 0; color:#2c3e50; font-size:18px;">📚 قسم: ${category}</h3>`;
             container.appendChild(sectionBox);
 
-            // جلب الفيديوهات (استخدام trim للقسم لضمان المطابقة)
             const { data: lessons, error: lessonError } = await supabaseClient
                 .from('lessons')
                 .select('*')
                 .eq('category', category.trim());
 
             if (lessons && lessons.length > 0) {
-                // ترتيب الدروس لو حابب (مثلاً بالأحدث أو بالترتيب الأبجدي)
                 lessons.forEach((video, index) => {
                     const btn = document.createElement('button');
                     btn.className = 'btn-main-hero';
                     btn.style = "background:linear-gradient(135deg, #3498db, #2980b9); width:100%; margin-bottom:8px; padding:12px; font-size:15px; border:none; color:white; border-radius:10px; cursor:pointer; display:block; text-align:right;";
                     btn.innerHTML = `🎬 حصة (${index + 1}): ${video.title}`;
                     btn.onclick = () => {
+                        // الانتقال لصفحة المشغل مع إرسال المعطيات
                         location.href = `video-player.html?video=${encodeURIComponent(video.url)}&title=${encodeURIComponent(video.title)}`;
                     };
                     sectionBox.appendChild(btn);
