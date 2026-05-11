@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        /* تنسيقات أزرار التواصل */
+        /* تنسيقات إضافية للصفحة الرئيسية */
         .social-section {
             margin: 50px auto 20px;
             padding: 20px;
@@ -49,6 +49,30 @@
             border-radius: 8px;
             text-decoration: none;
             font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* تنسيق زرار أولياء الأمور الجديد في الناف بار */
+        .parent-nav-btn {
+            background: #f1c40f;
+            color: #000 !important;
+            padding: 5px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .parent-nav-btn:hover {
+            background: #d4ac0d;
+            transform: scale(1.05);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
     </style>
 </head>
@@ -57,42 +81,28 @@
     <nav class="navbar">
         <a href="index.html" class="nav-logo">🌟 سنتر حلم نور</a>
         <div class="nav-links">
-            <a href="https://wa.me/201142388621" target="_blank" class="support-nav-btn">
-                <i class="fas fa-headset"></i> خدمة العملاء
+            <a href="parents.html" class="parent-nav-btn">
+                <i class="fas fa-user-shield"></i> بوابة أولياء الأمور
             </a>
+            
+            <a href="https://wa.me/201142388621" target="_blank" class="support-nav-btn">
+                <i class="fas fa-headset"></i> الدعم
+            </a>
+            
             <a href="admin.html" class="admin-btn-nav">⚙️ الإدارة</a>
         </div>
     </nav>
-<a href="parents.html" class="parent-btn">
-   👨‍👩‍👧‍👦 بوابة أولياء الأمور
-</a>
 
-<style>
-.parent-btn {
-    display: inline-block;
-    padding: 12px 25px;
-    background-color: #f1c40f; /* لون مميز */
-    color: #000;
-    text-decoration: none;
-    border-radius: 10px;
-    font-weight: bold;
-    margin: 10px;
-    transition: 0.3s;
-    box-shadow: 0 4px 15px rgba(241, 196, 15, 0.3);
-}
-.parent-btn:hover {
-    background-color: #d4ac0d;
-    transform: translateY(-3px);
-}
-</style>
-    <div class="container" style="text-align: center; padding-top: 50px;">
-        <h1 style="font-size: 40px; color: #00a8ff;">مرحباً بك في سنتر حلم نور</h1>
-        <p style="font-size: 20px; color: #666; margin-bottom: 30px;">حلمنا دائماً حلم نور... طريقك نحو التفوق يبدأ من هنا</p>
+    <div class="container" style="text-align: center; padding-top: 80px;">
+        <h1 style="font-size: 40px; color: #00a8ff; margin-bottom: 10px;">مرحباً بك في سنتر حلم نور</h1>
+        <p style="font-size: 20px; color: #666; margin-bottom: 40px;">حلمنا دائماً حلم نور... طريقك نحو التفوق يبدأ من هنا</p>
         
-        <button onclick="location.href='categories.html'" class="btn-main-hero">اضغط هنا للدخول للأقسام</button>
+        <button onclick="location.href='categories.html'" class="btn-main-hero" style="padding: 15px 40px; font-size: 22px; cursor: pointer;">
+            اضغط هنا للدخول للأقسام 🚀
+        </button>
 
         <div class="social-section">
-            <p class="social-title" style="font-weight: bold; color: #2c3e50;">تواصل معنا عبر منصاتنا</p>
+            <p class="social-title" style="font-weight: bold; color: #2c3e50; font-size: 18px;">تواصل معنا عبر منصاتنا</p>
             
             <a href="https://www.facebook.com/share/1AqWPF3LiK/" target="_blank" class="social-btn fb-page">
                 <i class="fab fa-facebook"></i>
@@ -110,69 +120,68 @@
             </a>
         </div>
     </div>
-<a href="https://wa.me/201142388621" class="whatsapp-float" target="_blank">
-    <i class="fab fa-whatsapp"></i>
-    <span class="tooltip-text">للشكاوى والاستفسارات</span>
-</a>
 
-<style>
-    /* تنسيق زر الواتساب العائم */
-    .whatsapp-float {
-        position: fixed;
-        width: 60px;
-        height: 60px;
-        bottom: 20px;
-        right: 20px;
-        background-color: #25d366;
-        color: #fff;
-        border-radius: 50px;
-        text-align: center;
-        font-size: 35px;
-        box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-        transition: all 0.3s ease;
-    }
+    <a href="https://wa.me/201142388621" class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+        <span class="tooltip-text">للشكاوى والاستفسارات</span>
+    </a>
 
-    /* تأثير عند وضع الماوس على الزر */
-    .whatsapp-float:hover {
-        transform: scale(1.1);
-        background-color: #128c7e;
-    }
-
-    /* نص صغير يظهر بجانب الزر (اختياري) */
-    .tooltip-text {
-        position: absolute;
-        right: 70px;
-        background: #333;
-        color: #fff;
-        padding: 5px 10px;
-        border-radius: 5px;
-        font-size: 12px;
-        white-space: nowrap;
-        visibility: hidden;
-        opacity: 0;
-        transition: opacity 0.3s;
-    }
-
-    .whatsapp-float:hover .tooltip-text {
-        visibility: visible;
-        opacity: 1;
-    }
-
-    /* ضبط الحجم للموبايل */
-    @media (max-width: 768px) {
+    <style>
         .whatsapp-float {
-            width: 50px;
-            height: 50px;
-            bottom: 15px;
-            right: 15px;
-            font-size: 30px;
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            bottom: 20px;
+            right: 20px;
+            background-color: #25d366;
+            color: #fff;
+            border-radius: 50px;
+            text-align: center;
+            font-size: 35px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
         }
-    }
-</style>
+
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+            background-color: #128c7e;
+        }
+
+        .tooltip-text {
+            position: absolute;
+            right: 70px;
+            background: #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .whatsapp-float:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .whatsapp-float {
+                width: 50px;
+                height: 50px;
+                bottom: 15px;
+                right: 15px;
+                font-size: 30px;
+            }
+            .nav-links { gap: 5px; }
+            .parent-nav-btn, .admin-btn-nav { padding: 5px 8px; font-size: 12px; }
+        }
+    </style>
 </body>
 </html>
