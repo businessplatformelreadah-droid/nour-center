@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <title>تأكيد الاشتراك - حلم نور</title>
     <link rel="stylesheet" href="style.css">
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -16,74 +15,104 @@
             <div style="background:#fff3cd; padding:15px; border-radius:10px; font-weight:800; font-size:22px; margin-bottom:15px;">01142388621</div>
             
             <input type="text" id="userName" placeholder="اسم الطالب الثلاثي">
-            <input type="text" id="userPhone" placeholder="رقم الموبايل  " maxlength="11">
+            <input type="text" id="userPhone" placeholder="رقم الموبايل" maxlength="11">
             
             <label style="display:block; margin-top:10px; color:#666; font-weight:bold;">اشتراكك هنا</label>
             <input type="file" id="userScreenshot" accept="image/*" style="border:none;">
             
-            <button id="sendBtn" class="btn-main-hero" style="width:100%; margin-top:20px;" onclick="sendOrder()">إرسال الطلب ✅</button>
+            <button id="sendBtn" class="btn-main-hero" style="width:100%; margin-top:20px;" onclick="processAndSend()">إرسال الطلب ✅</button>
         </div>
         <button onclick="window.history.back()" class="btn-back">⬅️ إلغاء</button>
     </div>
 
     <script>
-    // 1. إعدادات سوبابيز (تم تحديث الرابط بالـ ID الصحيح لمشروعك)
     const SUPABASE_URL = 'https://viutmpktcgceyofuxmus.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_QoIPp4IFBEdES90fNOqbKg_6kIF0GeO';
-    
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // 2. جلب اسم المادة من الرابط (Target)
     const params = new URLSearchParams(window.location.search);
     const target = decodeURIComponent(params.get('target') || "قسم عام");
     document.getElementById('courseName').innerText = target;
 
-    // 3. دالة إرسال الطلب للسيرفر
-    async function sendOrder() {
+    // دالة لضغط الصورة قبل الإرسال لتجنب خطأ Failed to fetch
+    async function processAndSend() {
         const name = document.getElementById('userName').value.trim();
         const phone = document.getElementById('userPhone').value.trim();
         const fileInput = document.getElementById('userScreenshot');
         const btn = document.getElementById('sendBtn');
 
-        // التحقق من البيانات
         if(!name || phone.length < 11 || !fileInput.files[0]) { 
             alert("يا بطل اكتب اسمك ورقمك وارفع صورة الوصل!"); 
             return; 
         }
 
         btn.disabled = true;
-        btn.innerText = "جاري الإرسال للسيرفر... ⏳";
+        btn.innerText = "جاري معالجة الصورة... ⏳";
 
+        const file = fileInput.files[0];
         const reader = new FileReader();
-        reader.onload = async function(e) {
-            const base64Img = e.target.result;
 
-            try {
-                // إرسال البيانات لجدول course_requests
-                const { data, error } = await supabaseClient
-                    .from('course_requests')
-                    .insert([
-                        { 
-                            name: name, 
-                            phone: phone, 
-                            category: target, 
-                            screen: base64Img 
-                        }
-                    ]);
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                // إنشاء Canvas لتقليل حجم الصورة
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
 
-                if (error) throw error;
+                // تحديث الأبعاد بحد أقصى 800 بكسل للحفاظ على الخفة
+                const max_size = 800;
+                if (width > height) {
+                    if (width > max_size) {
+                        height *= max_size / width;
+                        width = max_size;
+                    }
+                } else {
+                    if (height > max_size) {
+                        width *= max_size / height;
+                        height = max_size;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
 
-                alert("✅ وصل يا وحش! الطلب دلوقتي في الانتظار");
-                window.location.href = 'track.html';
-
-            } catch (err) {
-                console.error("Error detailed:", err);
-                alert("فشل الإرسال: " + err.message);
-                btn.disabled = false;
-                btn.innerText = "إرسال الطلب ✅";
-            }
+                // تحويل الصورة لـ Base64 بجودة 0.6 (60%) لضمان صغر الحجم
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                sendToSupabase(name, phone, compressedBase64);
+            };
+            img.src = event.target.result;
         };
-        reader.readAsDataURL(fileInput.files[0]);
+        reader.readAsDataURL(file);
+    }
+
+    async function sendToSupabase(name, phone, base64Data) {
+        const btn = document.getElementById('sendBtn');
+        btn.innerText = "جاري الإرسال للسيرفر... 🚀";
+
+        try {
+            const { error } = await supabaseClient
+                .from('course_requests')
+                .insert([{ 
+                    name: name, 
+                    phone: phone, 
+                    category: target, 
+                    screen: base64Data 
+                }]);
+
+            if (error) throw error;
+
+            alert("✅ وصل يا وحش! الطلب دلوقتي في الانتظار");
+            window.location.href = 'track.html';
+
+        } catch (err) {
+            console.error("Error detailed:", err);
+            alert("حدث خطأ في الإرسال. تأكد من اتصال الإنترنت وحاول مرة أخرى.");
+            btn.disabled = false;
+            btn.innerText = "إرسال الطلب ✅";
+        }
     }
 </script>
 </body>
