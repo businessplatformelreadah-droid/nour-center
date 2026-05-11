@@ -9,20 +9,31 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --primary: #f1c40f; --dark: #2c3e50; }
-        body { background: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
         .parents-container { max-width: 800px; margin: 50px auto; padding: 20px; }
         .search-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
         .search-box { display: flex; gap: 10px; margin-top: 20px; }
-        input { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; outline: none; font-size: 16px; }
+        input { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; outline: none; font-size: 16px; text-align: center; }
         input:focus { border-color: var(--primary); }
-        .btn-search { background: var(--dark); color: white; border: none; padding: 0 25px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
-        .btn-search:hover { background: #1a252f; }
+        .btn-search { background: var(--dark); color: white; border: none; padding: 0 25px; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: bold; }
+        .btn-search:hover { background: #1a252f; transform: scale(1.05); }
         #resultArea { margin-top: 30px; display: none; }
-        .result-card { background: white; padding: 20px; border-radius: 12px; border-right: 5px solid var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
-        .info-item { background: #f8f9fa; padding: 10px; border-radius: 5px; }
-        .info-item label { display: block; font-size: 12px; color: #7f8c8d; }
-        .info-item span { font-weight: bold; color: var(--dark); }
+        .result-card { background: white; padding: 25px; border-radius: 12px; border-right: 8px solid var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.05); animation: fadeIn 0.5s ease; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .info-item { background: #f8f9fa; padding: 15px; border-radius: 10px; border: 1px solid #eee; }
+        .info-item label { display: block; font-size: 13px; color: #7f8c8d; margin-bottom: 5px; }
+        .info-item span { font-weight: bold; color: var(--dark); font-size: 18px; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 600px) {
+            .info-grid { grid-template-columns: 1fr; }
+            .search-box { flex-direction: column; }
+            .btn-search { padding: 12px; }
+        }
     </style>
 </head>
 <body>
@@ -36,49 +47,83 @@
             <h2>🔍 استعلام عن مستوى الطالب</h2>
             <p>أدخل كود الطالب المكون من أرقام لمتابعة الدرجات والغياب</p>
             <div class="search-box">
-                <input type="text" id="studentCodeInput" placeholder="أدخل كود الطالب هنا...">
-                <button class="btn-search" onclick="checkProgress()">بحث</button>
+                <input type="number" id="studentCodeInput" placeholder="اكتب كود الطالب هنا...">
+                <button class="btn-search" id="searchBtn" onclick="checkProgress()">بحث الآن</button>
             </div>
         </div>
 
-        <div id="resultArea">
-            </div>
+        <div id="resultArea"></div>
     </div>
 
     <script>
-        // بيانات سوبابيز (حط بياناتك هنا زي ملف الأدمن)
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-        const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // --- تنبيه هام: ضع بياناتك الحقيقية هنا من ملف admin.html ---
+        const SB_URL = 'YOUR_SUPABASE_URL'; 
+        const SB_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+        // إنشاء الاتصال باسم مختلف لتجنب التعارض
+        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
         async function checkProgress() {
-            const code = document.getElementById('studentCodeInput').value;
+            const inputField = document.getElementById('studentCodeInput');
             const resultArea = document.getElementById('resultArea');
+            const searchBtn = document.getElementById('searchBtn');
+            const code = inputField.value.trim();
             
-            if(!code) { alert('من فضلك أدخل الكود'); return; }
+            if(!code) { 
+                alert('من فضلك أدخل كود الطالب أولاً'); 
+                return; 
+            }
 
-            const { data, error } = await supabase
-                .from('student_progress')
-                .select('*')
-                .eq('student_code', code)
-                .single();
+            // تغيير حالة الزرار أثناء البحث
+            searchBtn.innerText = "جاري البحث...";
+            searchBtn.disabled = true;
 
-            if (error || !data) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('student_progress')
+                    .select('*')
+                    .eq('student_code', code)
+                    .single();
+
                 resultArea.style.display = 'block';
-                resultArea.innerHTML = '<div class="result-card" style="border-right-color: #e74c3c;">❌ عذراً، لم يتم العثور على بيانات لهذا الكود.</div>';
-            } else {
-                resultArea.style.display = 'block';
-                resultArea.innerHTML = `
-                    <div class="result-card">
-                        <h3>تقرير الطالب: ${data.student_name}</h3>
-                        <div class="info-grid">
-                            <div class="info-item"><label>الحضور</label><span>${data.attendance}</span></div>
-                            <div class="info-item"><label>التفاعل</label><span>${data.interaction}</span></div>
-                            <div class="info-item"><label>درجة آخر اختبار</label><span style="color: #27ae60;">${data.exam_grade}</span></div>
-                            <div class="info-item"><label>تاريخ التحديث</label><span>${new Date(data.created_at).toLocaleDateString('ar-EG')}</span></div>
+
+                if (error || !data) {
+                    resultArea.innerHTML = `
+                        <div class="result-card" style="border-right-color: #e74c3c;">
+                            <h3 style="color: #e74c3c;">❌ لم يتم العثور على بيانات</h3>
+                            <p>تأكد من كتابة الكود بشكل صحيح، أو تواصل مع إدارة السنتر لتسجيل الكود.</p>
+                        </div>`;
+                } else {
+                    resultArea.innerHTML = `
+                        <div class="result-card">
+                            <h3 style="margin-top:0; color:var(--dark);">تقرير الطالب: ${data.student_name}</h3>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <label><i class="fas fa-user-check"></i> حالة الحضور</label>
+                                    <span>${data.attendance || 'غير مسجل'}</span>
+                                </div>
+                                <div class="info-item">
+                                    <label><i class="fas fa-comments"></i> التفاعل في الحصة</label>
+                                    <span>${data.interaction || 'غير مسجل'}</span>
+                                </div>
+                                <div class="info-item" style="background: #e8f5e9;">
+                                    <label><i class="fas fa-star"></i> درجة آخر اختبار</label>
+                                    <span style="color: #27ae60;">${data.exam_grade || '0'}</span>
+                                </div>
+                                <div class="info-item">
+                                    <label><i class="fas fa-calendar-alt"></i> تاريخ التحديث</label>
+                                    <span>${new Date(data.created_at).toLocaleDateString('ar-EG')}</span>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                }
+            } catch (err) {
+                console.error("Error:", err);
+                alert('حدث خطأ فني، حاول مرة أخرى');
+            } finally {
+                searchBtn.innerText = "بحث الآن";
+                searchBtn.disabled = false;
             }
         }
     </script>
