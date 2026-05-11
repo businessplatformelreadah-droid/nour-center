@@ -107,7 +107,7 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 15px;">
                 <div><label>اسم الطالب:</label><input type="text" id="progName" placeholder="الاسم الثلاثي"></div>
                 <div><label>كود الطالب (للدخول):</label><input type="text" id="progCode" placeholder="مثال: 202401"></div>
-                <div><label>المادة:</label><input type="text" id="progSubject" placeholder="مثال: لغة عربية"></div>
+                <div><label>المادة الدراسية:</label><input type="text" id="progSubject" placeholder="مثال: لغة عربية"></div>
                 <div><label>الحضور:</label>
                     <select id="progAttend">
                         <option>حاضر ✅</option>
@@ -134,9 +134,7 @@
                         <tr>
                             <th>الطالب</th>
                             <th>الكود</th>
-                            <th>المادة</th> <th>الحضور</th>
-                            <th>التفاعل</th>
-                            <th>الدرجة</th>
+                            <th>المادة</th> <th>الدرجة</th>
                             <th>التاريخ</th>
                             <th>إجراء</th>
                         </tr>
@@ -209,24 +207,24 @@
         renderActiveUsers();
         renderVideos(); 
         renderExams();
-        renderProgress(); 
+        renderProgress();
     }
 
-    // --- تسجيل بيانات مستوى الطلاب ---
+    // --- تحديث وظائف متابعة الطلاب ---
     async function saveStudentProgress() {
-        const name = document.getElementById('progName').value.trim();
-        const code = document.getElementById('progCode').value.trim();
-        const subject = document.getElementById('progSubject').value.trim(); // المادة
+        const name = document.getElementById('progName').value;
+        const code = document.getElementById('progCode').value;
+        const subject = document.getElementById('progSubject').value; // جلب المادة
         const attend = document.getElementById('progAttend').value;
         const inter = document.getElementById('progInter').value;
-        const grade = document.getElementById('progGrade').value.trim();
+        const grade = document.getElementById('progGrade').value;
 
         if(!name || !code || !subject) return alert("يرجى كتابة الاسم والكود والمادة");
 
         const { error } = await supabaseClient.from('student_progress').insert([{
             student_name: name,
             student_code: code,
-            subject_name: subject, // تأكد من وجود عمود subject_name في سوبابيز
+            subject_name: subject, // إرسال المادة
             attendance: attend,
             interaction: inter,
             exam_grade: grade
@@ -236,12 +234,12 @@
             alert("تم حفظ بيانات الطالب بنجاح ✅");
             document.getElementById('progName').value = "";
             document.getElementById('progCode').value = "";
-            document.getElementById('progSubject').value = "";
+            document.getElementById('progSubject').value = ""; // تفريغ المادة
             document.getElementById('progGrade').value = "";
             renderProgress();
         } else {
             console.error(error);
-            alert("حدث خطأ أثناء الحفظ، تأكد من إضافة عمود subject_name في جدول سوبابيز");
+            alert("حدث خطأ فني: تأكد من إضافة عمود subject_name في Supabase");
         }
     }
 
@@ -253,13 +251,11 @@
             <tr>
                 <td>${p.student_name}</td>
                 <td><b>${p.student_code}</b></td>
-                <td style="color:var(--accent); font-weight:bold;">${p.subject_name || '-'}</td> <td>${p.attendance || '-'}</td>
-                <td>${p.interaction || '-'}</td>
-                <td style="color:var(--danger); font-weight:bold;">${p.exam_grade}</td>
+                <td style="color:var(--accent); font-weight:bold;">${p.subject_name || 'غير محدد'}</td> <td style="color:var(--danger); font-weight:bold;">${p.exam_grade}</td>
                 <td>${new Date(p.created_at).toLocaleDateString('ar-EG')}</td>
                 <td><button class="btn btn-del" style="padding:5px 10px;" onclick="deleteProgress(${p.id})">🗑️ حذف</button></td>
             </tr>
-        `).join('') || "<tr><td colspan='8'>لا توجد سجلات حالياً</td></tr>";
+        `).join('') || "<tr><td colspan='6'>لا توجد سجلات حالياً</td></tr>";
     }
 
     async function deleteProgress(id) {
@@ -269,14 +265,21 @@
         }
     }
 
-    // --- إدارة الفيديوهات ---
+    // --- باقي دوال النظام (كما هي بدون تغيير) ---
     function cleanYoutubeUrl(url) {
         if (!url) return null;
         url = url.trim();
         const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
         const match = url.match(regExp);
         if (match && match[7].length === 11) return match[7];
-        return url.includes('shorts/') ? url.split('shorts/')[1].split(/[?&]/)[0] : (url.length === 11 ? url : null);
+        if (url.includes('shorts/')) {
+            const parts = url.split('shorts/');
+            if(parts[1]) {
+                const id = parts[1].split(/[?&]/)[0];
+                if(id.length === 11) return id;
+            }
+        }
+        return url.length === 11 ? url : null;
     }
 
     async function saveVideo() {
@@ -305,7 +308,6 @@
         if(confirm('حذف هذا الفيديو؟')) { await supabaseClient.from('lessons').delete().eq('id', id); renderVideos(); }
     }
 
-    // --- إدارة الاختبارات ---
     async function addExam() {
         const cat = document.getElementById('examCat').value;
         const type = document.getElementById('examType').value;
@@ -326,7 +328,6 @@
         if(confirm('حذف الملف؟')) { await supabaseClient.from('exams_data').delete().eq('id', id); renderExams(); }
     }
 
-    // --- إدارة الاشتراكات والأجهزة ---
     async function renderRequests() {
         const rBody = document.getElementById('requestBody');
         let { data: reqs } = await supabaseClient.from('course_requests').select('*').order('id', { ascending: false });

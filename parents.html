@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #f1c40f; --dark: #2c3e50; }
+        :root { --primary: #f1c40f; --dark: #2c3e50; --accent: #3498db; }
         body { background: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
         .parents-container { max-width: 800px; margin: 50px auto; padding: 20px; }
         .search-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
@@ -24,6 +24,11 @@
         .info-item label { display: block; font-size: 13px; color: #7f8c8d; margin-bottom: 5px; }
         .info-item span { font-weight: bold; color: var(--dark); font-size: 18px; }
         
+        /* تمييز خانة المادة */
+        .subject-badge { background: var(--accent) !important; border: none !important; }
+        .subject-badge span { color: white !important; }
+        .subject-badge label { color: rgba(255,255,255,0.8) !important; }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -56,11 +61,10 @@
     </div>
 
     <script>
-        // --- تنبيه هام: ضع بياناتك الحقيقية هنا من ملف admin.html ---
-        const SB_URL = 'YOUR_SUPABASE_URL'; 
-        const SB_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        // تم تحديث الـ Keys بناءً على كود الأدمن الخاص بك
+        const SB_URL = 'https://viutmpktcgceyofuxmus.supabase.co'; 
+        const SB_KEY = 'sb_publishable_QoIPp4IFBEdES90fNOqbKg_6kIF0GeO';
 
-        // إنشاء الاتصال باسم مختلف لتجنب التعارض
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
         async function checkProgress() {
@@ -74,15 +78,17 @@
                 return; 
             }
 
-            // تغيير حالة الزرار أثناء البحث
             searchBtn.innerText = "جاري البحث...";
             searchBtn.disabled = true;
 
             try {
+                // جلب أحدث سجل للطالب (order by id descending)
                 const { data, error } = await supabaseClient
                     .from('student_progress')
                     .select('*')
                     .eq('student_code', code)
+                    .order('id', { ascending: false })
+                    .limit(1)
                     .single();
 
                 resultArea.style.display = 'block';
@@ -97,20 +103,29 @@
                     resultArea.innerHTML = `
                         <div class="result-card">
                             <h3 style="margin-top:0; color:var(--dark);">تقرير الطالب: ${data.student_name}</h3>
+                            
                             <div class="info-grid">
+                                <div class="info-item subject-badge">
+                                    <label><i class="fas fa-book"></i> المادة الدراسية</label>
+                                    <span>${data.subject_name || 'عام'}</span>
+                                </div>
+
+                                <div class="info-item">
+                                    <label><i class="fas fa-star"></i> درجة الاختبار</label>
+                                    <span style="color: #27ae60;">${data.exam_grade || '0'}</span>
+                                </div>
+
                                 <div class="info-item">
                                     <label><i class="fas fa-user-check"></i> حالة الحضور</label>
                                     <span>${data.attendance || 'غير مسجل'}</span>
                                 </div>
+
                                 <div class="info-item">
-                                    <label><i class="fas fa-comments"></i> التفاعل في الحصة</label>
+                                    <label><i class="fas fa-comments"></i> التفاعل</label>
                                     <span>${data.interaction || 'غير مسجل'}</span>
                                 </div>
-                                <div class="info-item" style="background: #e8f5e9;">
-                                    <label><i class="fas fa-star"></i> درجة آخر اختبار</label>
-                                    <span style="color: #27ae60;">${data.exam_grade || '0'}</span>
-                                </div>
-                                <div class="info-item">
+
+                                <div class="info-item" style="grid-column: span 1;">
                                     <label><i class="fas fa-calendar-alt"></i> تاريخ التحديث</label>
                                     <span>${new Date(data.created_at).toLocaleDateString('ar-EG')}</span>
                                 </div>
