@@ -28,6 +28,31 @@
         const SUPABASE_KEY = 'sb_publishable_QoIPp4IFBEdES90fNOqbKg_6kIF0GeO';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // دالة مطورة جداً لجلب تفاصيل الجهاز بدقة
+        function getDeviceDetailedName() {
+            const ua = navigator.userAgent;
+            let deviceDetail = "جهاز غير معروف";
+
+            if (/android/i.test(ua)) {
+                // محاولة استخراج موديل الهاتف بين الأقواس
+                const modelMatch = ua.match(/\(([^;]+);\s+([^;)]+)\)/);
+                if (modelMatch && modelMatch[2]) {
+                    deviceDetail = "أندرويد (" + modelMatch[2].trim() + ")";
+                } else {
+                    deviceDetail = "جهاز أندرويد";
+                }
+            } else if (/iPad|iPhone|iPod/.test(ua)) {
+                deviceDetail = "آيفون/آيباد (iOS)";
+            } else if (/Windows NT/i.test(ua)) {
+                deviceDetail = "كمبيوتر (Windows)";
+            } else if (/Macintosh/i.test(ua)) {
+                deviceDetail = "كمبيوتر (Mac)";
+            } else {
+                deviceDetail = "متصفح ويب";
+            }
+            return deviceDetail;
+        }
+
         async function checkStatus() {
             const phone = document.getElementById('searchPhone').value.trim();
             const resultsArea = document.getElementById('resultsArea');
@@ -43,7 +68,7 @@
             resultsArea.innerHTML = "";
 
             try {
-                // 1. البحث عن بيانات الطالب واشتراكاته
+                // 1. البحث عن بيانات الطالب
                 const { data: subs, error: subError } = await supabaseClient
                     .from('user_subscriptions')
                     .select('*')
@@ -61,43 +86,51 @@
                     return;
                 }
 
-                // --- 🛡️ نظام بصمة الجهاز (Device Fingerprint) ---
+                // --- 🛡️ نظام بصمة الجهاز المطور ---
                 let localDeviceID = localStorage.getItem('my_device_id');
-                const currentDeviceName = navigator.userAgent.includes("Mobi") ? "موبايل" : "كمبيوتر/لاب توب";
-                const firstSub = subs[0]; // نستخدم أول اشتراك للتحقق من الجهاز
+                const detailedDeviceName = getDeviceDetailedName(); 
+                const firstSub = subs[0];
+
+                // إنشاء بصمة لو مش موجودة
+                if (!localDeviceID) {
+                    localDeviceID = 'dev-' + Math.random().toString(36).substr(2, 9) + Date.now();
+                    localStorage.setItem('my_device_id', localDeviceID);
+                }
 
                 if (!firstSub.device_id) {
-                    // أول مرة يدخل: توليد بصمة وربطها بالحساب
-                    if (!localDeviceID) {
-                        localDeviceID = 'dev-' + Math.random().toString(36).substr(2, 9) + Date.now();
-                        localStorage.setItem('my_device_id', localDeviceID);
-                    }
-                    
-                    // تحديث بصمة الجهاز في كل اشتراكات هذا الرقم
-                    await supabaseClient
+                    // أول دخول للحساب: نربطه بالجهاز الحالي فوراً
+                    const { error: upError } = await supabaseClient
                         .from('user_subscriptions')
-                        .update({ device_id: localDeviceID, device_name: currentDeviceName })
+                        .update({ 
+                            device_id: localDeviceID, 
+                            device_name: detailedDeviceName 
+                        })
                         .eq('phone', phone);
                         
-                    alert("✅ تم ربط حسابك بهذا الجهاز بنجاح. لا يمكنك الدخول من جهاز آخر.");
-                } else {
-                    // الحساب مربوط بجهاز.. هل المتصفح الحالي يملك نفس البصمة؟
-                    if (firstSub.device_id !== localDeviceID) {
-                        btn.disabled = false;
-                        btn.innerText = "بحث عن اشتراكاتي";
-                        resultsArea.innerHTML = `
-                            <div style="background:#fff3cd; color:#856404; padding:15px; border-radius:10px; border: 1px solid #ffeeba;">
-                                ⚠️ هذا الحساب مفعل على جهاز آخر. <br>
-                                يرجى تسجيل الدخول من جهازك الأساسي أو التواصل مع الإدارة.
-                            </div>`;
-                        return;
-                    }
+                    if(upError) throw upError;
+                    
+                    alert("✅ تم ربط حسابك بهذا الجهاز بنجاح: " + detailedDeviceName);
+                    // تحديث البيانات محلياً عشان القارئ يكمل صح
+                    firstSub.device_id = localDeviceID;
+                    firstSub.device_name = detailedDeviceName;
+                } 
+
+                // تحقق من البصمة (هل الجهاز الحالي هو المسجل؟)
+                if (firstSub.device_id !== localDeviceID) {
+                    btn.disabled = false;
+                    btn.innerText = "بحث عن اشتراكاتي";
+                    resultsArea.innerHTML = `
+                        <div style="background:#fff3cd; color:#856404; padding:15px; border-radius:10px; border: 1px solid #ffeeba; text-align:center;">
+                            ⚠️ عذراً، هذا الحساب مرتبط بجهاز آخر: <br>
+                            <b style="color:#d35400;">(${firstSub.device_name || 'غير معروف'})</b> <br><br>
+                            يرجى استخدامه من الجهاز الأول أو التواصل مع الإدارة لتصفير الجهاز.
+                        </div>`;
+                    return;
                 }
                 // --- نهاية نظام الحماية ---
 
                 resultsArea.innerHTML = "<h3 style='margin-bottom:15px;'>حصصك المتاحة حالياً:</h3>";
 
-                // 2. عرض الدروس لكل قسم مشترك فيه
                 for (let sub of subs) {
                     await displayCategoryLessons(sub.category, resultsArea);
                 }
@@ -115,7 +148,7 @@
 
         async function displayCategoryLessons(category, container) {
             const sectionBox = document.createElement('div');
-            sectionBox.style = "background:#f9f9f9; padding:15px; border-radius:15px; margin-bottom:15px; border-right:5px solid var(--accent); text-align:right; box-shadow: 0 2px 5px rgba(0,0,0,0.05);";
+            sectionBox.style = "background:#f9f9f9; padding:15px; border-radius:15px; margin-bottom:15px; border-right:5px solid #3498db; text-align:right; box-shadow: 0 2px 5px rgba(0,0,0,0.05);";
             sectionBox.innerHTML = `<h3 style="margin:0 0 10px 0; color:#2c3e50; font-size:18px;">📚 قسم: ${category}</h3>`;
             container.appendChild(sectionBox);
 
@@ -131,7 +164,6 @@
                     btn.style = "background:linear-gradient(135deg, #3498db, #2980b9); width:100%; margin-bottom:8px; padding:12px; font-size:15px; border:none; color:white; border-radius:10px; cursor:pointer; display:block; text-align:right;";
                     btn.innerHTML = `🎬 حصة (${index + 1}): ${video.title}`;
                     btn.onclick = () => {
-                        // الانتقال لصفحة المشغل مع إرسال المعطيات
                         location.href = `video-player.html?video=${encodeURIComponent(video.url)}&title=${encodeURIComponent(video.title)}`;
                     };
                     sectionBox.appendChild(btn);
