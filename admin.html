@@ -4,113 +4,119 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة إدارة أكاديمية حلم نور</title>
+    <title>لوحة تحكم المالك | أكاديمية حلم نور</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --main: #2c3e50; --danger: #e74c3c; --success: #27ae60; --accent: #3498db; --bg: #f0f2f5; --exam: #8e44ad; --parents: #f39c12; --whatsapp: #25d366; }
+        :root { --main: #2c3e50; --danger: #e74c3c; --success: #27ae60; --accent: #3498db; --bg: #f0f2f5; --exam: #8e44ad; --parents: #f1c40f; --whatsapp: #25d366; }
         body { background: var(--bg); font-family: 'Cairo', sans-serif; margin: 0; padding: 20px; direction: rtl; }
         #loginOverlay { position: fixed; inset: 0; background: var(--main); z-index: 10000; display: flex; justify-content: center; align-items: center; }
         .login-box { background: white; padding: 30px; border-radius: 15px; text-align: center; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .login-box input { width: 100%; padding: 12px; margin: 20px 0; border: 2px solid #eee; border-radius: 10px; text-align: center; font-size: 18px; outline: none; }
         .login-box button { width: 100%; background: var(--success); color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 18px; }
         .container { max-width: 1100px; margin: auto; }
-        .card { background: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-top: 5px solid var(--accent); }
-        h2 { color: var(--main); margin-top: 0; font-size: 1.3rem; display: flex; align-items: center; gap: 10px; }
-        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
-        input, select, textarea { padding: 12px; border: 2px solid #f0f0f0; border-radius: 10px; font-family: 'Cairo'; width: 100%; box-sizing: border-box; outline: none; transition: 0.3s; }
-        input:focus, textarea:focus { border-color: var(--accent); }
-        .btn { border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; transition: 0.2s; font-family: 'Cairo'; width: 100%; font-size: 1rem; margin-top: 10px; }
-        .btn-save { background: var(--success); }
-        .btn-wa { background: var(--whatsapp); }
-        .btn-del { background: var(--danger); width: auto; padding: 5px 10px; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; background: white; padding: 15px 25px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .card { background: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #e1e4e8; }
+        h2 { color: var(--main); border-right: 5px solid var(--accent); padding-right: 15px; margin-top: 0; font-size: 22px; }
         .table-wrapper { overflow-x: auto; margin-top: 15px; }
-        table { width: 100%; border-collapse: collapse; background: white; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
         th { background: #f8f9fa; color: var(--main); }
-        .badge-wa { background: var(--whatsapp); color: white; padding: 4px 8px; border-radius: 5px; text-decoration: none; font-size: 0.8rem; }
+        input, select, textarea { padding: 12px; border: 2px solid #f0f0f0; border-radius: 10px; font-family: 'Cairo'; width: 100%; box-sizing: border-box; outline: none; }
+        .btn { border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; transition: 0.2s; font-family: 'Cairo'; }
+        .btn-add { background: var(--success); font-size: 18px; width: 100%; margin-top: 15px; }
+        .btn-del { background: var(--danger); }
+        .btn-view { background: var(--accent); }
+        #imgModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 11000; justify-content: center; align-items: center; }
+        #imgModal img { max-width: 90%; max-height: 85%; border: 5px solid white; border-radius: 10px; }
+        .btn-home { text-decoration: none; color: var(--main); font-weight: bold; border: 1px solid #ddd; padding: 8px 15px; border-radius: 10px; transition: 0.3s; }
+        .btn-home:hover { background: #eee; }
     </style>
 </head>
 <body>
 
     <div id="loginOverlay">
         <div class="login-box">
-            <h2>دخول الإدارة 🔐</h2>
-            <input type="password" id="passInput" placeholder="كلمة المرور">
-            <button onclick="unlock()">فتح اللوحة</button>
+            <h2 style="border:none">لوحة التحكم السرية 🔐</h2>
+            <input type="password" id="passInput" placeholder="اكتب الباسورد هنا">
+            <button onclick="unlock()">فتح النظام</button>
         </div>
     </div>
 
     <div class="container">
-        <div style="text-align:center; margin-bottom: 20px;">
-            <h1>لوحة تحكم أكاديمية حلم نور 🚀</h1>
-        </div>
-
-        <div class="card" style="border-top-color: var(--accent);">
-            <h2>📊 تسجيل مستوى ودرجات الطالب</h2>
-            <div class="grid-3">
-                <div><label>اسم الطالب:</label><input type="text" id="pName" placeholder="الاسم الثلاثي"></div>
-                <div><label>كود الطالب:</label><input type="text" id="pCode" placeholder="2024xx"></div>
-                <div><label>المادة:</label><input type="text" id="pSub" placeholder="مثال: لغة عربية"></div>
-                <div><label>الحضور:</label><select id="pAttend"><option>حاضر ✅</option><option>غائب ❌</option><option>متأخر ⏳</option></select></div>
-                <div><label>المستوى:</label><select id="pLevel"><option>ممتاز ⭐⭐⭐</option><option>جيد جداً ⭐⭐</option><option>جيد ⭐</option><option>يحتاج تحسين ⚠️</option></select></div>
-                <div><label>الدرجة:</label><input type="text" id="pGrade" placeholder="18 من 20"></div>
-            </div>
-            <button class="btn btn-save" onclick="saveToDatabase()">حفظ بيانات الطالب في السجل ✅</button>
-        </div>
-
-        <div class="card" style="border-top-color: var(--whatsapp);">
-            <h2 style="color: var(--whatsapp);">📱 جدول مراسلة ولي الأمر (واتساب)</h2>
-            <div class="grid-2">
-                <div>
-                    <label>رقم هاتف ولي الأمر:</label>
-                    <input type="text" id="waPhone" placeholder="01xxxxxxxxx">
-                </div>
-                <div>
-                    <label>نص الرسالة الموجهة:</label>
-                    <textarea id="waMsg" style="min-height: 48px;" placeholder="اكتب ملاحظاتك أو تقريرك هنا..."></textarea>
-                </div>
-            </div>
-            <button class="btn btn-wa" onclick="sendWhatsAppOnly()">إرسال الرسالة إلى واتساب الآن 🚀</button>
-        </div>
-
-        <div class="card" style="border-top-color: var(--exam);">
-            <h2>🎥 رفع حصة أو اختبار جديد</h2>
-            <div class="grid-3">
-                <div style="grid-column: span 1;">
-                    <label>القسم:</label>
-                    <select id="contentCat">
-                        <option value="1ث-اللغة العربية">1ث - اللغة العربية</option>
-                        <option value="3ث-الفيزياء">3ث - الفيزياء</option>
-                        <option value="كورس البرمجة">كورس البرمجة</option>
-                        </select>
-                </div>
-                <div><label>العنوان:</label><input type="text" id="contentTitle" placeholder="عنوان الدرس أو الملف"></div>
-                <div><label>الرابط:</label><input type="text" id="contentUrl" placeholder="رابط يوتيوب أو PDF"></div>
-            </div>
-            <button class="btn" style="background: var(--exam);" onclick="uploadContent()">نشر المحتوى للملف الشخصي ✅</button>
+        <div class="admin-header">
+            <h1>إدارة أكاديمية حلم نور 🚀</h1>
+            <a href="index.html" class="btn-home">🏠 العودة للرئيسية</a>
         </div>
 
         <div class="card">
-            <h2>📑 سجل درجات الطلاب المسجلة</h2>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>الطالب</th>
-                            <th>المادة</th>
-                            <th>الحضور</th>
-                            <th>المستوى</th>
-                            <th>الدرجة</th>
-                            <th>حذف</th>
-                        </tr>
-                    </thead>
-                    <tbody id="progressTable"></tbody>
-                </table>
+            <h2>🎥 رفع فيديو جديد (الحصص)</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                <div>
+                    <label>القسم المخصص:</label>
+                    <select id="catInput">
+                        <option disabled selected value="">-- اختر القسم --</option>
+                        <optgroup label="📘 الصف الأول الابتدائي"><option>1ب - اللغة العربية</option><option>1ب - الرياضيات</option><option>1ب - اللغة الإنجليزية</option></optgroup>
+                        <optgroup label="🏗️ قسم التأسيس"><option>تأسيس قواعد نحوية</option><option>تأسيس الكيمياء للثانوية العامة</option><option>تأسيس لغة إنجليزية</option></optgroup>
+                    </select> 
+                </div>
+                <div><label>عنوان الحصة:</label><input type="text" id="lessonName" placeholder="مثال: شرح درس الجاذبية"></div>
+                <div style="grid-column: span 2;"><label>رابط يوتيوب:</label><input type="text" id="videoUrl" placeholder="الصق الرابط هنا"></div>
             </div>
+            <button class="btn btn-add" onclick="saveVideo()">نشر الفيديو في الموقع ✅</button>
         </div>
+
+        <div class="card" style="border-right: 8px solid var(--exam);">
+            <h2 style="border-right-color: var(--exam);">📝 إضافة اختبار أو ملف PDF</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                <div><label>القسم الدراسي:</label><select id="examCat"><option value="">-- اختر القسم --</option><option>1ث</option><option>2ث</option><option>3ث</option></select></div>
+                <div><label>نوع الملف:</label><select id="examType"><option value="pdf">ملف PDF</option><option value="link">رابط خارجي</option></select></div>
+                <div><label>اسم الملف:</label><input type="text" id="examTitle" placeholder="مثال: امتحان شهر أكتوبر"></div>
+                <div><label>الرابط:</label><input type="text" id="examUrl" placeholder="ضع الرابط هنا"></div>
+            </div>
+            <button class="btn btn-add" style="background:var(--exam); width:100%" onclick="addExam()">نشر الاختبار ✅</button>
+        </div>
+
+        <div class="card" style="border-right: 8px solid var(--parents);">
+            <h2 style="border-right-color: var(--parents);">📊 تسجيل مستوى ودرجات الطلاب (لأولياء الأمور)</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 15px;">
+                <div><label>اسم الطالب:</label><input type="text" id="progName" placeholder="الاسم الثلاثي"></div>
+                <div><label>كود الطالب:</label><input type="text" id="progCode" placeholder="مثال: 202401"></div>
+                <div><label>المادة الدراسية:</label><input type="text" id="progSubject" placeholder="مثال: لغة عربية"></div>
+                <div><label>الحضور:</label><select id="progAttend"><option>حاضر ✅</option><option>غائب ❌</option><option>متأخر ⏳</option></select></div>
+                <div><label>مستوى الطالب:</label><select id="progInter"><option>ممتاز ⭐⭐⭐</option><option>جيد جداً ⭐⭐</option><option>جيد ⭐</option><option>يحتاج تحسين ⚠️</option></select></div>
+                <div><label>درجة الامتحان:</label><input type="text" id="progGrade" placeholder="مثال: 18 من 20"></div>
+            </div>
+            <button class="btn btn-add" style="background:var(--parents); color:#000; width:100%" onclick="saveStudentProgress()">حفظ بيانات الطالب ✅</button>
+        </div>
+
+        <div class="card" style="border-right: 8px solid var(--whatsapp);">
+            <h2 style="border-right-color: var(--whatsapp);">💬 إرسال رسالة واتساب يدوية لولي الأمر</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                <div>
+                    <label>رقم واتساب ولي الأمر:</label>
+                    <input type="text" id="waPhone" placeholder="اكتب الرقم هنا (مثال: 01012345678)">
+                </div>
+                <div style="grid-column: span 2;">
+                    <label>نص الرسالة:</label>
+                    <textarea id="waMsg" style="height: 100px;" placeholder="اكتب الرسالة التي ستصل لولي الأمر على الخاص..."></textarea>
+                </div>
+            </div>
+            <button class="btn" style="background: var(--whatsapp); width: 100%; margin-top: 15px; font-size: 18px;" onclick="sendCustomWhatsApp()">إرسال الرسالة عبر واتساب الآن 📱</button>
+        </div>
+
+        <div class="card">
+            <h3>سجل درجات الطلاب المضافة:</h3>
+            <div class="table-wrapper"><table id="progressTable"><thead><tr><th>الطالب</th><th>الكود</th><th>المادة</th><th>المستوى</th><th>الدرجة</th><th>التاريخ</th><th>إجراء</th></tr></thead><tbody id="progressListBody"></tbody></table></div>
+        </div>
+
+        <div class="card"><h2>📑 إدارة الاختبارات</h2><div class="table-wrapper"><table><thead><tr><th>القسم</th><th>النوع</th><th>العنوان</th><th>رابط</th><th>حذف</th></tr></thead><tbody id="examListBody"></tbody></table></div></div>
+        <div class="card"><h2>⏳ طلبات الاشتراك</h2><div class="table-wrapper"><table><thead><tr><th>الطالب</th><th>الرقم</th><th>القسم</th><th>الوصل</th><th>قرار</th></tr></thead><tbody id="requestBody"></tbody></table></div></div>
+        <div class="card"><h2>👥 المشتركين النشطين</h2><div class="table-wrapper"><table><thead><tr><th>الرقم</th><th>القسم</th><th>الجهاز</th><th>إجراء</th></tr></thead><tbody id="userListBody"></tbody></table></div></div>
+        <div class="card"><h2>🗑️ إدارة الفيديوهات</h2><div class="table-wrapper"><table><thead><tr><th>القسم</th><th>الدرس</th><th>حذف</th></tr></thead><tbody id="videoListBody"></tbody></table></div></div>
+
     </div>
+
+    <div id="imgModal" onclick="this.style.display='none'"><img id="modalImg" src=""></div>
 
 <script>
     const ADMIN_PASS = "12123";
@@ -121,70 +127,138 @@
     function unlock() {
         if(document.getElementById('passInput').value === ADMIN_PASS) {
             document.getElementById('loginOverlay').style.display = 'none';
-            loadProgress();
-        } else { alert("كلمة المرور غير صحيحة"); }
+            renderAll();
+        } else { alert("الباسورد غير صحيح!"); }
     }
 
-    // حفظ في قاعدة البيانات فقط
-    async function saveToDatabase() {
-        const name = document.getElementById('pName').value;
-        const code = document.getElementById('pCode').value;
-        const sub = document.getElementById('pSub').value;
-        const att = document.getElementById('pAttend').value;
-        const lv = document.getElementById('pLevel').value;
-        const gr = document.getElementById('pGrade').value;
+    async function renderAll() {
+        renderRequests();
+        renderActiveUsers();
+        renderVideos(); 
+        renderExams();
+        renderProgress();
+    }
 
-        if(!name || !sub) return alert("امسح الخانات الفاضية الأول!");
+    // --- وظيفة إرسال الواتساب الجديدة ---
+    function sendCustomWhatsApp() {
+        let phone = document.getElementById('waPhone').value.trim();
+        const message = document.getElementById('waMsg').value.trim();
+
+        if (!phone || !message) return alert("من فضلك اكتب الرقم والرسالة أولاً");
+
+        if (phone.startsWith('0')) { phone = '2' + phone; } 
+        else if (!phone.startsWith('20')) { phone = '20' + phone; }
+
+        const encodedMsg = encodeURIComponent(message);
+        const whatsappUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodedMsg}`;
+        window.open(whatsappUrl, '_blank');
+    }
+
+    // --- حفظ درجات الطلاب ---
+    async function saveStudentProgress() {
+        const name = document.getElementById('progName').value;
+        const code = document.getElementById('progCode').value;
+        const subject = document.getElementById('progSubject').value;
+        const attend = document.getElementById('progAttend').value;
+        const inter = document.getElementById('progInter').value;
+        const grade = document.getElementById('progGrade').value;
+
+        if(!name || !code || !subject) return alert("يرجى إكمال البيانات الأساسية");
 
         const { error } = await supabaseClient.from('student_progress').insert([{
-            student_name: name, student_code: code, subject_name: sub, attendance: att, student_level: lv, exam_grade: gr
+            student_name: name, student_code: code, subject_name: subject,
+            attendance: attend, interaction: inter, student_level: inter, exam_grade: grade
         }]);
 
-        if(!error) { alert("✅ تم الحفظ في سجل الدرجات"); loadProgress(); clearFields(); }
+        if(!error) {
+            alert("✅ تم الحفظ بنجاح");
+            renderProgress();
+        } else { alert("خطأ في الحفظ"); }
     }
 
-    // إرسال واتساب فقط (الجدول الثاني)
-    function sendWhatsAppOnly() {
-        const phone = document.getElementById('waPhone').value.trim();
-        const msg = document.getElementById('waText') ? document.getElementById('waText').value : document.getElementById('waMsg').value;
-        
-        if(!phone || !msg) return alert("لازم تكتب الرقم والرسالة يا هندسة!");
-        
-        const cleanPhone = phone.startsWith('0') ? '2' + phone : phone;
-        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+    async function renderProgress() {
+        const pBody = document.getElementById('progressListBody');
+        let { data: list } = await supabaseClient.from('student_progress').select('*').order('id', { ascending: false });
+        pBody.innerHTML = list?.map(p => `<tr><td>${p.student_name}</td><td>${p.student_code}</td><td>${p.subject_name}</td><td>${p.student_level || p.interaction}</td><td>${p.exam_grade}</td><td>${new Date(p.created_at).toLocaleDateString('ar-EG')}</td><td><button class="btn btn-del" onclick="deleteProgress(${p.id})">حذف</button></td></tr>`).join('') || "";
     }
 
-    async function loadProgress() {
-        const pBody = document.getElementById('progressTable');
-        let { data } = await supabaseClient.from('student_progress').select('*').order('id', { ascending: false });
-        pBody.innerHTML = data?.map(p => `
-            <tr>
-                <td>${p.student_name}</td>
-                <td>${p.subject_name}</td>
-                <td>${p.attendance}</td>
-                <td>${p.student_level}</td>
-                <td>${p.exam_grade}</td>
-                <td><button class="btn btn-del" onclick="deleteEntry(${p.id})">حذف</button></td>
-            </tr>
-        `).join('') || "";
+    async function deleteProgress(id) {
+        if(confirm('حذف السجل؟')) { await supabaseClient.from('student_progress').delete().eq('id', id); renderProgress(); }
     }
 
-    async function uploadContent() {
-        const cat = document.getElementById('contentCat').value;
-        const title = document.getElementById('contentTitle').value;
-        const url = document.getElementById('contentUrl').value;
-        if(!title || !url) return alert("بيانات المحتوى ناقصة");
-        
-        await supabaseClient.from('lessons').insert([{ category: cat, title: title, url: url }]);
-        alert("✅ تم رفع المحتوى بنجاح");
+    // --- باقي الوظائف (فيديوهات، اختبارات، طلبات) ---
+    async function saveVideo() {
+        const cat = document.getElementById('catInput').value;
+        const name = document.getElementById('lessonName').value.trim();
+        const rawUrl = document.getElementById('videoUrl').value.trim();
+        const videoId = cleanYoutubeUrl(rawUrl);
+        if(!videoId) return alert("رابط يوتيوب غير صحيح");
+        const { error } = await supabaseClient.from('lessons').insert([{ category: cat, title: name, url: videoId }]);
+        if(!error) { alert("✅ تم النشر"); renderVideos(); }
     }
 
-    async function deleteEntry(id) { if(confirm('حذف السجل؟')) { await supabaseClient.from('student_progress').delete().eq('id', id); loadProgress(); } }
-    
-    function clearFields() {
-        document.getElementById('pName').value = '';
-        document.getElementById('pGrade').value = '';
+    function cleanYoutubeUrl(url) {
+        const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[7].length === 11) ? match[7] : null;
     }
+
+    async function renderVideos() {
+        const vBody = document.getElementById('videoListBody');
+        let { data } = await supabaseClient.from('lessons').select('*').order('id', { ascending: false });
+        vBody.innerHTML = data?.map(v => `<tr><td>${v.category}</td><td>${v.title}</td><td><button class="btn btn-del" onclick="deleteVideo(${v.id})">حذف</button></td></tr>`).join('') || "";
+    }
+
+    async function deleteVideo(id) {
+        if(confirm('حذف؟')) { await supabaseClient.from('lessons').delete().eq('id', id); renderVideos(); }
+    }
+
+    async function addExam() {
+        const cat = document.getElementById('examCat').value;
+        const type = document.getElementById('examType').value;
+        const title = document.getElementById('examTitle').value.trim();
+        const url = document.getElementById('examUrl').value.trim();
+        const { error } = await supabaseClient.from('exams_data').insert([{ category: cat, type: type, title: title, url: url }]);
+        if(!error) { alert("✅ تم النشر"); renderExams(); }
+    }
+
+    async function renderExams() {
+        const eBody = document.getElementById('examListBody');
+        let { data } = await supabaseClient.from('exams_data').select('*').order('id', { ascending: false });
+        eBody.innerHTML = data?.map(ex => `<tr><td>${ex.category}</td><td>${ex.type}</td><td>${ex.title}</td><td><a href="${ex.url}" target="_blank">فتح</a></td><td><button class="btn btn-del" onclick="deleteExam(${ex.id})">حذف</button></td></tr>`).join('') || "";
+    }
+
+    async function deleteExam(id) {
+        if(confirm('حذف؟')) { await supabaseClient.from('exams_data').delete().eq('id', id); renderExams(); }
+    }
+
+    async function renderRequests() {
+        const rBody = document.getElementById('requestBody');
+        let { data: reqs } = await supabaseClient.from('course_requests').select('*').order('id', { ascending: false });
+        rBody.innerHTML = reqs?.map(r => `<tr><td>${r.name}</td><td>${r.phone}</td><td>${r.category}</td><td><button class="btn btn-view" onclick="showImg('${r.screen}')">عرض</button></td><td><button class="btn" style="background:var(--success)" onclick="approveUser('${r.id}','${r.phone}','${r.category}')">قبول</button><button class="btn btn-del" onclick="rejectUser('${r.id}')">رفض</button></td></tr>`).join('') || "";
+    }
+
+    async function approveUser(id, phone, category) {
+        await supabaseClient.from('user_subscriptions').insert([{ phone: String(phone), category: category }]);
+        await supabaseClient.from('course_requests').delete().eq('id', id);
+        alert("✅ تم التفعيل"); renderAll();
+    }
+
+    async function rejectUser(id) {
+        if(confirm('حذف؟')) { await supabaseClient.from('course_requests').delete().eq('id', id); renderRequests(); }
+    }
+
+    async function renderActiveUsers() {
+        const uBody = document.getElementById('userListBody');
+        let { data: subs } = await supabaseClient.from('user_subscriptions').select('*').order('id', { ascending: false });
+        uBody.innerHTML = subs?.map(s => `<tr><td>${s.phone}</td><td>${s.category}</td><td>${s.device_name || 'لا يوجد'}</td><td><button class="btn btn-del" onclick="kickUser(${s.id})">حذف</button></td></tr>`).join('') || "";
+    }
+
+    async function kickUser(id) {
+        if(confirm('حذف؟')) { await supabaseClient.from('user_subscriptions').delete().eq('id', id); renderActiveUsers(); }
+    }
+
+    function showImg(src) { document.getElementById('modalImg').src = src; document.getElementById('imgModal').style.display = 'flex'; }
 </script>
 </body>
 </html>
