@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المكتبة الرقمية والاختبارات | سنتر حلم نور</title>
+    <title>المكتبة الرقمية والاختبارات | أكاديمية حلم نور</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
@@ -22,7 +21,7 @@
             background: var(--bg); 
             margin: 0; padding: 0; 
             direction: rtl; 
-            user-select: none; /* منع النسخ لحماية المحتوى */
+            user-select: none;
         }
         
         .navbar { 
@@ -101,7 +100,6 @@
         .pdf-btn:hover, .link-btn:hover { opacity: 0.8; }
 
         #resourcesArea { display: none; margin-top: 20px; border-top: 2px solid #ddd; padding-top: 20px; }
-        
         .empty-msg { color:#888; text-align:center; padding:20px; background: #eee; border-radius: 10px; margin-top: 10px; }
 
         @media (max-width: 500px) {
@@ -125,7 +123,6 @@
 
         <div id="resourcesArea">
             <button onclick="resetView()" style="background:#888; color:white; border:none; padding:8px 20px; border-radius:8px; cursor:pointer; margin-bottom:20px; font-family:'Cairo';">⬅️ العودة للمواد</button>
-            
             <h2 id="selectedSubjectTitle" style="color: var(--accent); margin-bottom: 20px; text-align: center;"></h2>
             
             <h2 class="section-title">📂 المذكرات والملفات (PDF)</h2>
@@ -137,12 +134,10 @@
     </div>
 
     <script>
-        // إعدادات Supabase (نفس بياناتك)
         const SUPABASE_URL = 'https://viutmpktcgceyofuxmus.supabase.co'; 
         const SUPABASE_KEY = 'sb_publishable_QoIPp4IFBEdES90fNOqbKg_6kIF0GeO';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // بيانات المراحل الدراسية
         const studyData = [
             { title: "📘 الصف الأول الابتدائي", short: "1ب", subjects: ["اللغة العربية", "الرياضيات", "اللغة الإنجليزية"] },
             { title: "📗 الصف الثاني الابتدائي", short: "2ب", subjects: ["اللغة العربية", "الرياضيات", "اللغة الإنجليزية"] },
@@ -151,14 +146,13 @@
             { title: "📒 الصف الخامس الابتدائي", short: "5ب", subjects: ["اللغة العربية", "الرياضيات", "اللغة الإنجليزية", "العلوم", "الدراسات الاجتماعية"] },
             { title: "📓 الصف السادس الابتدائي", short: "6ب", subjects: ["اللغة العربية", "الرياضيات", "اللغة الإنجليزية", "العلوم", "الدراسات الاجتماعية"] },
             { title: "📘 الصف الأول الإعدادي", short: "1ع", subjects: ["اللغة العربية", "اللغة الإنجليزية", "الرياضيات", "الدراسات الاجتماعية", "العلوم"] },
-            { title: "📗 الصف الثاني الإعدادي", short: "2ع", subjects: ["اللغة العربية", "لغة إنجليزية", "دراسات اجتماعية", "رياضيات", "علوم"] },
-            { title: "📙 الصف الثالث الإعدادي", short: "3ع", subjects: ["اللغة العربية", "لغة إنجليزية", "دراسات", "رياضيات", "علوم"] },
-            { title: "📘 الصف الأول الثانوي", short: "1ث", subjects: ["اللغة العربية", "اللغة الأجنبية الأولى", "اللغة الأجنبية الثانية", "الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "التاريخ", "الجغرافيا", "الفلسفة والمنطق"] },
-            { title: "📗 الصف الثاني الثانوي", short: "2ث", subjects: ["اللغة العربية", "اللغة الأجنبية الأولى", "اللغة الأجنبية الثانية", "الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "التاريخ", "الجغرافيا", "علم النفس", "الفلسفة"] },
-            { title: "📕 الصف الثالث الثانوي", short: "3ث", subjects: ["اللغة العربية", "اللغة الأجنبية الأولى", "الأحياء", "الكيمياء", "الفيزياء", "الرياضيات", "التاريخ", "الجغرافيا", "علم النفس والاجتماع", "الفلسفة والمنطق"] }
+            { title: "📗 الصف الثاني الإعدادي", short: "2ع", subjects: ["لغة عربية", "علوم", "رياضيات", "دراسات اجتماعية", "لغة إنجليزية"] },
+            { title: "📙 الصف الثالث الإعدادي", short: "3ع", subjects: ["لغة عربية", "علوم", "رياضيات", "دراسات", "لغة إنجليزية"] },
+            { title: "📘 الصف الأول الثانوي", short: "1ث", subjects: ["لغة عربية", "كيمياء", "فيزياء", "أحياء", "رياضيات", "لغة إنجليزية", "تاريخ", "جغرافيا", "فلسفة"] },
+            { title: "📗 الصف الثاني الثانوي", short: "2ث", subjects: ["لغة عربية", "كيمياء", "فيزياء", "أحياء", "رياضيات", "تاريخ", "جغرافيا", "علم نفس", "فلسفة"] },
+            { title: "📕 الصف الثالث الثانوي", short: "3ث", subjects: ["لغة عربية", "كيمياء", "فيزياء", "أحياء", "رياضيات", "تاريخ", "جغرافيا", "علم نفس", "فلسفة"] }
         ];
 
-        // بناء واجهة الاختيارات
         function init() {
             const container = document.getElementById('levelsContainer');
             container.innerHTML = ""; 
@@ -169,7 +163,8 @@
                     <span class="level-title">${item.title}</span>
                     <div class="subjects-grid">
                         ${item.subjects.map(sub => {
-                            const itemKey = `${item.short}-${sub}`;
+                            // توحيد الربط مع لوحة الإدارة بإضافة المسافات
+                            const itemKey = `${item.short} - ${sub}`;
                             return `<button class="subject-btn" onclick="loadContent('${itemKey}', '${item.title} - ${sub}')">${sub}</button>`;
                         }).join('')}
                     </div>
@@ -178,7 +173,6 @@
             });
         }
 
-        // جلب المحتوى من قاعدة البيانات
         async function loadContent(itemKey, fullTitle) {
             document.getElementById('selectionArea').style.display = 'none';
             document.getElementById('resourcesArea').style.display = 'block';
@@ -192,12 +186,11 @@
             linksList.innerHTML = "<p style='text-align:center;'>جاري جلب الاختبارات... ⏳</p>";
 
             try {
-                // جلب البيانات من جدول exams_data
-                // ملاحظة: العمود 'category' في الجدول يجب أن يخزن القيمة بصيغة "1ث-الفيزياء"
+                // البحث باستخدام ilike لزيادة المرونة وتفادي مشاكل المطابقة الحرفية
                 const { data: exams, error } = await supabaseClient
                     .from('exams_data')
                     .select('*')
-                    .eq('category', itemKey); 
+                    .ilike('category', `%${itemKey}%`); 
 
                 if (error) throw error;
 
@@ -250,7 +243,7 @@
 
         window.onload = init;
 
-        // حماية المحتوى
+        // حماية المحتوى من النسخ
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.onkeydown = function(e) {
             if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73)) return false;
