@@ -25,11 +25,11 @@
         .btn { border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; transition: 0.2s; font-family: 'Cairo'; }
         .btn-add { background: var(--success); font-size: 18px; width: 100%; margin-top: 15px; }
         .btn-del { background: var(--danger); }
+        .btn-wa { background: var(--whatsapp); color: white; }
         .btn-view { background: var(--accent); }
         #imgModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 11000; justify-content: center; align-items: center; }
         #imgModal img { max-width: 90%; max-height: 85%; border: 5px solid white; border-radius: 10px; }
-        .btn-home { text-decoration: none; color: var(--main); font-weight: bold; border: 1px solid #ddd; padding: 8px 15px; border-radius: 10px; transition: 0.3s; }
-        .btn-home:hover { background: #eee; }
+        .btn-home { text-decoration: none; color: var(--main); font-weight: bold; border: 1px solid #ddd; padding: 8px 15px; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -54,8 +54,8 @@
                 <div>
                     <label>القسم المخصص:</label>
                     <select id="catInput">
-                        <option disabled selected value="">-- اختر القسم --</option>
-                        <optgroup label="المرحلة الثانوية📌">
+                        <option disabled selected value="">اختر القسم</option>
+                        <optgroup label="المرحلة الثانوية📌 📘 الصف الأول الثانوي">
                             <option value="1ث-اللغة العربية">1ث - اللغة العربية</option>
                             <option value="1ث-لغة أجنبية أولى">1ث - لغة أجنبية أولى</option>
                             <option value="1ث-لغة أجنبية ثانية">1ث - لغة أجنبية ثانية</option>
@@ -66,83 +66,111 @@
                             <option value="1ث-التاريخ">1ث - التاريخ</option>
                             <option value="1ث-الجغرافيا">1ث - الجغرافيا</option>
                             <option value="1ث-الفلسفة والمنطق">1ث - الفلسفة والمنطق</option>
+                        </optgroup>
+                        <optgroup label="📌 📗 الصف الثاني الثانوي (أساسي)">
                             <option value="2ث-اللغة العربية">2ث - اللغة العربية</option>
                             <option value="2ث-لغة أجنبية أولى">2ث - لغة أجنبية أولى</option>
                             <option value="2ث-لغة أجنبية ثانية">2ث - لغة أجنبية ثانية</option>
+                        </optgroup>
+                        <optgroup label="📌 📗 الصف الثاني الثانوي (علمي)">
                             <option value="2ث علمي-الرياضيات">2ث علمي - الرياضيات</option>
                             <option value="2ث علمي-الفيزياء">2ث علمي - الفيزياء</option>
                             <option value="2ث علمي-الكيمياء">2ث علمي - الكيمياء</option>
                             <option value="2ث علمي-الأحياء">2ث علمي - الأحياء</option>
+                        </optgroup>
+                        <optgroup label="📌 📗 الصف الثاني الثانوي (أدبي)">
                             <option value="2ث أدبي-التاريخ">2ث أدبي - التاريخ</option>
                             <option value="2ث أدبي-الجغرافيا">2ث أدبي - الجغرافيا</option>
                             <option value="2ث أدبي-علم النفس">2ث أدبي - علم النفس</option>
                             <option value="2ث أدبي-الفلسفة">2ث أدبي - الفلسفة</option>
+                        </optgroup>
+                        <optgroup label="📌 📕 الصف الثالث الثانوي (مشترك)">
                             <option value="3ث-اللغة العربية">3ث - اللغة العربية</option>
                             <option value="3ث-لغة أجنبية أولى">3ث - لغة أجنبية أولى</option>
+                        </optgroup>
+                        <optgroup label="📌 📕 الصف الثالث الثانوي (علمي علوم)">
                             <option value="3ث علوم-الأحياء">3ث علوم - الأحياء</option>
                             <option value="3ث علوم-الكيمياء">3ث علوم - الكيمياء</option>
                             <option value="3ث علوم-الفيزياء">3ث علوم - الفيزياء</option>
+                        </optgroup>
+                        <optgroup label="📌 📕 الصف الثالث الثانوي (علمي رياضة)">
                             <option value="3ث رياضة-الرياضيات">3ث رياضة - الرياضيات</option>
                             <option value="3ث رياضة-الفيزياء">3ث رياضة - الفيزياء</option>
                             <option value="3ث رياضة-الكيمياء">3ث رياضة - الكيمياء</option>
+                        </optgroup>
+                        <optgroup label="📌 📕 الصف الثالث الثانوي (أدبي)">
                             <option value="3ث أدبي-التاريخ">3ث أدبي - التاريخ</option>
                             <option value="3ث أدبي-الجغرافيا">3ث أدبي - الجغرافيا</option>
                             <option value="3ث أدبي-علم النفس والاجتماع">3ث أدبي - علم النفس والاجتماع</option>
                             <option value="3ث أدبي-الفلسفة والمنطق">3ث أدبي - الفلسفة والمنطق</option>
                         </optgroup>
-                        <optgroup label="المرحلة الإعدادية📌">
+                        <optgroup label="المرحلة الإعدادية📌 📚 الصف الأول الإعدادي">
                             <option value="1ع-العلوم">1ع - العلوم</option>
                             <option value="1ع-الرياضيات">1ع - الرياضيات</option>
                             <option value="1ع-الدراسات الاجتماعية">1ع - الدراسات الاجتماعية</option>
                             <option value="1ع-اللغة الإنجليزية">1ع - اللغة الإنجليزية</option>
                             <option value="1ع-اللغة العربية">1ع - اللغة العربية</option>
+                        </optgroup>
+                        <optgroup label="📌 📚 الصف الثاني الإعدادي">
                             <option value="2ع-لغة عربية">2ع - لغة عربية</option>
                             <option value="2ع-لغة إنجليزية">2ع - لغة إنجليزية</option>
                             <option value="2ع-دراسات اجتماعية">2ع - دراسات اجتماعية</option>
                             <option value="2ع-رياضيات">2ع - رياضيات</option>
                             <option value="2ع-علوم">2ع - علوم</option>
+                        </optgroup>
+                        <optgroup label="📌 📚 الصف الثالث الإعدادي">
                             <option value="3ع-علوم">3ع - علوم</option>
                             <option value="3ع-دراسات">3ع - دراسات</option>
                             <option value="3ع-رياضيات">3ع - رياضيات</option>
                             <option value="3ع-لغة عربية">3ع - لغة عربية</option>
                             <option value="3ع-لغة إنجليزية">3ع - لغة إنجليزية</option>
                         </optgroup>
-                        <optgroup label="المرحلة الابتدائية📌">
+                        <optgroup label="المرحلة الابتدائية📌 📘 الصف الأول الابتدائي">
                             <option value="1ب-اللغة العربية">1ب - اللغة العربية</option>
                             <option value="1ب-الرياضيات">1ب - الرياضيات</option>
                             <option value="1ب-اللغة الإنجليزية">1ب - اللغة الإنجليزية</option>
+                        </optgroup>
+                        <optgroup label="📌 📗 الصف الثاني الابتدائي">
                             <option value="2ب-اللغة العربية">2ب - اللغة العربية</option>
                             <option value="2ب-الرياضيات">2ب - الرياضيات</option>
                             <option value="2ب-اللغة الإنجليزية">2ب - اللغة الإنجليزية</option>
+                        </optgroup>
+                        <optgroup label="📌 📙 الصف الثالث الابتدائي">
                             <option value="3ب-اللغة العربية">3ب - اللغة العربية</option>
                             <option value="3ب-الرياضيات">3ب - الرياضيات</option>
                             <option value="3ب-اللغة الإنجليزية">3ب - اللغة الإنجليزية</option>
                             <option value="3ب-الدراسات الاجتماعية">3ب - الدراسات الاجتماعية</option>
                             <option value="3ب-العلوم">3ب - العلوم</option>
+                        </optgroup>
+                        <optgroup label="📌 📕 الصف الرابع الابتدائي">
                             <option value="4ب-اللغة العربية">4ب - اللغة العربية</option>
                             <option value="4ب-الرياضيات">4ب - الرياضيات</option>
                             <option value="4ب-اللغة الإنجليزية">4ب - اللغة الإنجليزية</option>
                             <option value="4ب-العلوم">4ب - العلوم</option>
                             <option value="4ب-الدراسات الاجتماعية">4ب - الدراسات الاجتماعية</option>
+                        </optgroup>
+                        <optgroup label="📌 📒 الصف الخامس الابتدائي">
                             <option value="5ب-اللغة العربية">5ب - اللغة العربية</option>
                             <option value="5ب-الرياضيات">5ب - الرياضيات</option>
                             <option value="5ب-اللغة الإنجليزية">5ب - اللغة الإنجليزية</option>
                             <option value="5ب-العلوم">5ب - العلوم</option>
                             <option value="5ب-الدراسات الاجتماعية">5ب - الدراسات الاجتماعية</option>
+                        </optgroup>
+                        <optgroup label="📌 📓 الصف السادس الابتدائي">
                             <option value="6ب-اللغة العربية">6ب - اللغة العربية</option>
                             <option value="6ب-الرياضيات">6ب - الرياضيات</option>
                             <option value="6ب-اللغة الإنجليزية">6ب - اللغة الإنجليزية</option>
                             <option value="6ب-العلوم">6ب - العلوم</option>
                             <option value="6ب-الدراسات الاجتماعية">6ب - الدراسات الاجتماعية</option>
                         </optgroup>
-                        <optgroup label="الكورسات📌">
+                        <optgroup label="الكورسات📌 💻 كورسات تعليمية">
                             <option value="كورس تأسيس اللغة الأنجليزية">كورس تأسيس اللغة الأنجليزية</option>
                             <option value="كورس المهارات الناعمة">كورس المهارات الناعمة</option>
                             <option value="كورس اللغة الفرنسية">كورس اللغة الفرنسية</option>
                             <option value="كورس البرمجة">كورس البرمجة</option>
                             <option value="كورس استخدام كانفا">كورس استخدام كانفا</option>
                         </optgroup>
-                        <optgroup label="التأسيس📌">
+                        <optgroup label="التأسيس📌 🏗️ قسم التأسيس">
                             <option value="تأسيس قواعد نحوية">تأسيس قواعد نحوية</option>
                             <option value="تأسيس الكيمياء للثانوية العامة">تأسيس الكيمياء للثانوية العامة</option>
                             <option value="تأسيس لغة إنجليزية">تأسيس لغة إنجليزية</option>
@@ -156,108 +184,108 @@
         </div>
 
         <div class="card" style="border-right: 8px solid var(--exam);">
-            <h2 style="border-right-color: var(--exam);">📝 إضافة اختبار أو ملف PDF</h2>
+            <h2>📝 إضافة اختبار أو ملف PDF</h2>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
                 <div>
                     <label>القسم الدراسي:</label>
                     <select id="examCat">
-                        <option value="">-- اختر الصف والمادة 📚 --</option>
+                        <option value="">اختر الصف الدراسي والمادة 📚</option>
                         <optgroup label="📘 الصف الأول الابتدائي">
-                            <option value="1ب-اللغة العربية">1ب - اللغة العربية</option>
-                            <option value="1ب-الرياضيات">1ب - الرياضيات</option>
-                            <option value="1ب-اللغة الإنجليزية">1ب - اللغة الإنجليزية</option>
+                            <option value="1ب-اللغة العربية">اللغة العربية</option>
+                            <option value="1ب-الرياضيات">الرياضيات</option>
+                            <option value="1ب-اللغة الإنجليزية">اللغة الإنجليزية</option>
                         </optgroup>
                         <optgroup label="📗 الصف الثاني الابتدائي">
-                            <option value="2ب-اللغة العربية">2ب - اللغة العربية</option>
-                            <option value="2ب-الرياضيات">2ب - الرياضيات</option>
-                            <option value="2ب-اللغة الإنجليزية">2ب - اللغة الإنجليزية</option>
+                            <option value="2ب-اللغة العربية">اللغة العربية</option>
+                            <option value="2ب-الرياضيات">الرياضيات</option>
+                            <option value="2ب-اللغة الإنجليزية">اللغة الإنجليزية</option>
                         </optgroup>
                         <optgroup label="📙 الصف الثالث الابتدائي">
-                            <option value="3ب-اللغة العربية">3ب - اللغة العربية</option>
-                            <option value="3ب-الرياضيات">3ب - الرياضيات</option>
-                            <option value="3ب-اللغة الإنجليزية">3ب - اللغة الإنجليزية</option>
-                            <option value="3ب-التربية الدينية">3ب - التربية الدينية</option>
-                            <option value="3ب-الدراسات الاجتماعية">3ب - الدراسات الاجتماعية</option>
-                            <option value="3ب-العلوم">3ب - العلوم</option>
+                            <option value="3ب-اللغة العربية">اللغة العربية</option>
+                            <option value="3ب-الرياضيات">الرياضيات</option>
+                            <option value="3ب-اللغة الإنجليزية">اللغة الإنجليزية</option>
+                            <option value="3ب-التربية الدينية">التربية الدينية</option>
+                            <option value="3ب-الدراسات الاجتماعية">الدراسات الاجتماعية</option>
+                            <option value="3ب-العلوم">العلوم</option>
                         </optgroup>
                         <optgroup label="📕 الصف الرابع الابتدائي">
-                            <option value="4ب-اللغة العربية">4ب - اللغة العربية</option>
-                            <option value="4ب-الرياضيات">4ب - الرياضيات</option>
-                            <option value="4ب-اللغة الإنجليزية">4ب - اللغة الإنجليزية</option>
-                            <option value="4ب-العلوم">4ب - العلوم</option>
-                            <option value="4ب-الدراسات الاجتماعية">4ب - الدراسات الاجتماعية</option>
+                            <option value="4ب-اللغة العربية">اللغة العربية</option>
+                            <option value="4ب-الرياضيات">الرياضيات</option>
+                            <option value="4ب-اللغة الإنجليزية">اللغة الإنجليزية</option>
+                            <option value="4ب-العلوم">العلوم</option>
+                            <option value="4ب-الدراسات الاجتماعية">الدراسات الاجتماعية</option>
                         </optgroup>
                         <optgroup label="📒 الصف الخامس الابتدائي">
-                            <option value="5ب-اللغة العربية">5ب - اللغة العربية</option>
-                            <option value="5ب-الرياضيات">5ب - الرياضيات</option>
-                            <option value="5ب-اللغة الإنجليزية">5ب - اللغة الإنجليزية</option>
-                            <option value="5ب-العلوم">5ب - العلوم</option>
-                            <option value="5ب-الدراسات الاجتماعية">5ب - الدراسات الاجتماعية</option>
+                            <option value="5ب-اللغة العربية">اللغة العربية</option>
+                            <option value="5ب-الرياضيات">الرياضيات</option>
+                            <option value="5ب-اللغة الإنجليزية">اللغة الإنجليزية</option>
+                            <option value="5ب-العلوم">العلوم</option>
+                            <option value="5ب-الدراسات الاجتماعية">الدراسات الاجتماعية</option>
                         </optgroup>
                         <optgroup label="📓 الصف السادس الابتدائي">
-                            <option value="6ب-اللغة العربية">6ب - اللغة العربية</option>
-                            <option value="6ب-الرياضيات">6ب - الرياضيات</option>
-                            <option value="6ب-اللغة الإنجليزية">6ب - اللغة الإنجليزية</option>
-                            <option value="6ب-العلوم">6ب - العلوم</option>
-                            <option value="6ب-الدراسات الاجتماعية">6ب - الدراسات الاجتماعية</option>
+                            <option value="6ب-اللغة العربية">اللغة العربية</option>
+                            <option value="6ب-الرياضيات">الرياضيات</option>
+                            <option value="6ب-اللغة الإنجليزية">اللغة الإنجليزية</option>
+                            <option value="6ب-العلوم">العلوم</option>
+                            <option value="6ب-الدراسات الاجتماعية">الدراسات الاجتماعية</option>
                         </optgroup>
                         <optgroup label="📘 الصف الأول الإعدادي">
-                            <option value="1ع-اللغة العربية">1ع - اللغة العربية</option>
-                            <option value="1ع-اللغة الإنجليزية">1ع - اللغة الإنجليزية</option>
-                            <option value="1ع-الرياضيات">1ع - الرياضيات</option>
-                            <option value="1ع-الدراسات الاجتماعية">1ع - الدراسات الاجتماعية</option>
-                            <option value="1ع-العلوم">1ع - العلوم</option>
+                            <option value="1ع-اللغة العربية">اللغة العربية</option>
+                            <option value="1ع-اللغة الإنجليزية">اللغة الإنجليزية</option>
+                            <option value="1ع-الرياضيات">الرياضيات</option>
+                            <option value="1ع-الدراسات الاجتماعية">الدراسات الاجتماعية</option>
+                            <option value="1ع-العلوم">العلوم</option>
                         </optgroup>
                         <optgroup label="📗 الصف الثاني الإعدادي">
-                            <option value="2ع-اللغة العربية">2ع - اللغة العربية</option>
-                            <option value="2ع-لغة إنجليزية">2ع - لغة إنجليزية</option>
-                            <option value="2ع-دراسات اجتماعية">2ع - دراسات اجتماعية</option>
-                            <option value="2ع-رياضيات">2ع - رياضيات</option>
-                            <option value="2ع-علوم">2ع - علوم</option>
+                            <option value="2ع-اللغة العربية">اللغة العربية</option>
+                            <option value="2ع-لغة إنجليزية">لغة إنجليزية</option>
+                            <option value="2ع-دراسات اجتماعية">دراسات اجتماعية</option>
+                            <option value="2ع-رياضيات">رياضيات</option>
+                            <option value="2ع-علوم">علوم</option>
                         </optgroup>
                         <optgroup label="📙 الصف الثالث الإعدادي">
-                            <option value="3ع-اللغة العربية">3ع - اللغة العربية</option>
-                            <option value="3ع-لغة إنجليزية">3ع - لغة إنجليزية</option>
-                            <option value="3ع-دراسات">3ع - دراسات</option>
-                            <option value="3ع-رياضيات">3ع - رياضيات</option>
-                            <option value="3ع-علوم">3ع - علوم</option>
+                            <option value="3ع-اللغة العربية">اللغة العربية</option>
+                            <option value="3ع-لغة إنجليزية">لغة إنجليزية</option>
+                            <option value="3ع-دراسات">دراسات</option>
+                            <option value="3ع-رياضيات">رياضيات</option>
+                            <option value="3ع-علوم">علوم</option>
                         </optgroup>
                         <optgroup label="📘 الصف الأول الثانوي">
-                            <option value="1ث-اللغة العربية">1ث - اللغة العربية</option>
-                            <option value="1ث-اللغة الأجنبية الأولى">1ث - اللغة الأجنبية الأولى</option>
-                            <option value="1ث-اللغة الأجنبية الثانية">1ث - اللغة الأجنبية الثانية</option>
-                            <option value="1ث-الرياضيات">1ث - الرياضيات</option>
-                            <option value="1ث-الفيزياء">1ث - الفيزياء</option>
-                            <option value="1ث-الكيمياء">1ث - الكيمياء</option>
-                            <option value="1ث-الأحياء">1ث - الأحياء</option>
-                            <option value="1ث-التاريخ">1ث - التاريخ</option>
-                            <option value="1ث-الجغرافيا">1ث - الجغرافيا</option>
-                            <option value="1ث-الفلسفة والمنطق">1ث - الفلسفة والمنطق</option>
+                            <option value="1ث-اللغة العربية">اللغة العربية</option>
+                            <option value="1ث-اللغة الأجنبية الأولى">اللغة الأجنبية الأولى</option>
+                            <option value="1ث-اللغة الأجنبية الثانية">اللغة الأجنبية الثانية</option>
+                            <option value="1ث-الرياضيات">الرياضيات</option>
+                            <option value="1ث-الفيزياء">الفيزياء</option>
+                            <option value="1ث-الكيمياء">الكيمياء</option>
+                            <option value="1ث-الأحياء">الأحياء</option>
+                            <option value="1ث-التاريخ">التاريخ</option>
+                            <option value="1ث-الجغرافيا">الجغرافيا</option>
+                            <option value="1ث-الفلسفة والمنطق">الفلسفة والمنطق</option>
                         </optgroup>
                         <optgroup label="📗 الصف الثاني الثانوي">
-                            <option value="2ث-اللغة العربية">2ث - اللغة العربية</option>
-                            <option value="2ث-اللغة الأجنبية الأولى">2ث - اللغة الأجنبية الأولى</option>
-                            <option value="2ث-اللغة الأجنبية الثانية">2ث - اللغة الأجنبية الثانية</option>
-                            <option value="2ث-الرياضيات">2ث - الرياضيات</option>
-                            <option value="2ث-الفيزياء">2ث - الفيزياء</option>
-                            <option value="2ث-الكيمياء">2ث - الكيمياء</option>
-                            <option value="2ث-الأحياء">2ث - الأحياء</option>
-                            <option value="2ث-التاريخ">2ث - التاريخ</option>
-                            <option value="2ث-الجغرافيا">2ث - الجغرافيا</option>
-                            <option value="2ث-علم النفس">2ث - علم النفس</option>
-                            <option value="2ث-الفلسفة">2ث - الفلسفة</option>
+                            <option value="2ث-اللغة العربية">اللغة العربية</option>
+                            <option value="2ث-اللغة الأجنبية الأولى">اللغة الأجنبية الأولى</option>
+                            <option value="2ث-اللغة الأجنبية الثانية">اللغة الأجنبية الثانية</option>
+                            <option value="2ث-الرياضيات">الرياضيات</option>
+                            <option value="2ث-الفيزياء">الفيزياء</option>
+                            <option value="2ث-الكيمياء">الكيمياء</option>
+                            <option value="2ث-الأحياء">الأحياء</option>
+                            <option value="2ث-التاريخ">التاريخ</option>
+                            <option value="2ث-الجغرافيا">الجغرافيا</option>
+                            <option value="2ث-علم النفس">علم النفس</option>
+                            <option value="2ث-الفلسفة">الفلسفة</option>
                         </optgroup>
                         <optgroup label="📕 الصف الثالث الثانوي">
-                            <option value="3ث-اللغة العربية">3ث - اللغة العربية</option>
-                            <option value="3ث-اللغة الأجنبية الأولى">3ث - اللغة الأجنبية الأولى</option>
-                            <option value="3ث-الأحياء">3ث - الأحياء</option>
-                            <option value="3ث-الكيمياء">3ث - الكيمياء</option>
-                            <option value="3ث-الفيزياء">3ث - الفيزياء</option>
-                            <option value="3ث-الرياضيات">3ث - الرياضيات</option>
-                            <option value="3ث-التاريخ">3ث - التاريخ</option>
-                            <option value="3ث-الجغرافيا">3ث - الجغرافيا</option>
-                            <option value="3ث-علم النفس والاجتماع">3ث - علم النفس والاجتماع</option>
-                            <option value="3ث-الفلسفة والمنطق">3ث - الفلسفة والمنطق</option>
+                            <option value="3ث-اللغة العربية">اللغة العربية</option>
+                            <option value="3ث-اللغة الأجنبية الأولى">اللغة الأجنبية الأولى</option>
+                            <option value="3ث-الأحياء">الأحياء</option>
+                            <option value="3ث-الكيمياء">الكيمياء</option>
+                            <option value="3ث-الفيزياء">الفيزياء</option>
+                            <option value="3ث-الرياضيات">الرياضيات</option>
+                            <option value="3ث-التاريخ">التاريخ</option>
+                            <option value="3ث-الجغرافيا">الجغرافيا</option>
+                            <option value="3ث-علم النفس والاجتماع">علم النفس والاجتماع</option>
+                            <option value="3ث-الفلسفة والمنطق">الفلسفة والمنطق</option>
                         </optgroup>
                     </select>
                 </div>
@@ -269,19 +297,38 @@
         </div>
 
         <div class="card" style="border-right: 8px solid var(--parents);">
-            <h2 style="border-right-color: var(--parents);">📊 تسجيل مستوى ودرجات الطلاب</h2>
+            <h2 style="border-right-color: var(--parents);">📊 تسجيل مستوى الطلاب (مع إرسال ولي الأمر)</h2>
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 15px;">
                 <div><label>اسم الطالب:</label><input type="text" id="progName" placeholder="الاسم الثلاثي"></div>
                 <div><label>كود الطالب:</label><input type="text" id="progCode" placeholder="202401"></div>
+                <div><label>رقم ولي الأمر (واتساب):</label><input type="text" id="parentPhone" placeholder="01xxxxxxxxx"></div>
                 <div><label>المادة الدراسية:</label><input type="text" id="progSubject" placeholder="لغة عربية"></div>
                 <div><label>الحضور:</label><select id="progAttend"><option>حاضر ✅</option><option>غائب ❌</option><option>متأخر ⏳</option></select></div>
                 <div><label>مستوى الطالب:</label><select id="progInter"><option>ممتاز ⭐⭐⭐</option><option>جيد جداً ⭐⭐</option><option>جيد ⭐</option><option>يحتاج تحسين ⚠️</option></select></div>
                 <div><label>درجة الامتحان:</label><input type="text" id="progGrade" placeholder="18 من 20"></div>
             </div>
-            <button class="btn btn-add" style="background:var(--parents); color:#000; width:100%" onclick="saveStudentProgress()">حفظ بيانات الطالب ✅</button>
+            <button class="btn btn-add" style="background:var(--parents); color:#000; width:100%" onclick="saveStudentProgress()">حفظ وإرسال التقرير 📩</button>
         </div>
 
-        <div class="card"><h3>سجل درجات الطلاب:</h3><div class="table-wrapper"><table><thead><tr><th>الطالب</th><th>الكود</th><th>المادة</th><th>المستوى</th><th>الدرجة</th><th>إجراء</th></tr></thead><tbody id="progressListBody"></tbody></table></div></div>
+        <div class="card">
+            <h3>سجل درجات الطلاب المطور:</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الطالب</th>
+                            <th>المادة</th>
+                            <th>المستوى</th>
+                            <th>الدرجة</th>
+                            <th>ولي الأمر</th>
+                            <th>إجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="progressListBody"></tbody>
+                </table>
+            </div>
+        </div>
+
         <div class="card"><h2>📑 إدارة الاختبارات</h2><div class="table-wrapper"><table><thead><tr><th>القسم</th><th>العنوان</th><th>رابط</th><th>حذف</th></tr></thead><tbody id="examListBody"></tbody></table></div></div>
         <div class="card"><h2>🗑️ إدارة الفيديوهات</h2><div class="table-wrapper"><table><thead><tr><th>القسم</th><th>الدرس</th><th>حذف</th></tr></thead><tbody id="videoListBody"></tbody></table></div></div>
         <div class="card"><h2>⏳ طلبات الاشتراك</h2><div class="table-wrapper"><table><thead><tr><th>الطالب</th><th>الرقم</th><th>القسم</th><th>الوصل</th><th>قرار</th></tr></thead><tbody id="requestBody"></tbody></table></div></div>
@@ -306,23 +353,60 @@
         renderRequests(); renderVideos(); renderExams(); renderProgress();
     }
 
+    // حفظ مستوى الطالب وإرسال واتساب تلقائي
+    async function saveStudentProgress() {
+        const name = document.getElementById('progName').value.trim();
+        const code = document.getElementById('progCode').value.trim();
+        const subject = document.getElementById('progSubject').value.trim();
+        const attend = document.getElementById('progAttend').value;
+        const level = document.getElementById('progInter').value;
+        const grade = document.getElementById('progGrade').value.trim();
+        const phone = document.getElementById('parentPhone').value.trim();
+
+        if(!name || !code || !subject || !phone) return alert("من فضلك امسح الخانات الفارغة");
+
+        const { error } = await supabaseClient.from('student_progress').insert([{
+            student_name: name,
+            student_code: code,
+            subject_name: subject,
+            attendance: attend,
+            student_level: level,
+            exam_grade: grade,
+            parent_phone: phone
+        }]);
+
+        if(!error) {
+            alert("✅ تم الحفظ بنجاح جاري تحويلك للواتساب...");
+            const msg = `تحية طيبة من أكاديمية حلم نور 🌹\nتقرير مستوى الطالب: ${name}\nالمادة: ${subject}\nالحالة: ${attend}\nالمستوى العام: ${level}\nدرجة الاختبار: ${grade}\nنتمنى له دوام التوفيق.`;
+            window.open(`https://wa.me/2${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+            renderProgress();
+        }
+    }
+
+    async function renderProgress() {
+        const pBody = document.getElementById('progressListBody');
+        let { data } = await supabaseClient.from('student_progress').select('*').order('id', { ascending: false });
+        pBody.innerHTML = data?.map(p => `
+            <tr>
+                <td>${p.student_name}</td>
+                <td>${p.subject_name}</td>
+                <td>${p.student_level}</td>
+                <td>${p.exam_grade}</td>
+                <td><button class="btn btn-wa" onclick="window.open('https://wa.me/2${p.parent_phone}', '_blank')">واتساب 📱</button></td>
+                <td><button class="btn btn-del" onclick="deleteProgress(${p.id})">حذف</button></td>
+            </tr>
+        `).join('') || "";
+    }
+
+    // دوال الحذف والرفع (نفس الكود السابق مع الحفاظ على القوائم)
     async function saveVideo() {
         let cat = document.getElementById('catInput').value;
         const name = document.getElementById('lessonName').value.trim();
         const videoId = cleanYoutubeUrl(document.getElementById('videoUrl').value);
         if(!videoId || !cat || !name) return alert("بيانات ناقصة");
-        
-        // تنظيف القيمة من المسافات حول الشرطة لضمان المطابقة
         cat = cat.replace(/\s*-\s*/, "-").trim();
-
         const { error } = await supabaseClient.from('lessons').insert([{ category: cat, title: name, url: videoId }]);
         if(!error) { alert("✅ تم النشر"); renderVideos(); }
-    }
-
-    function cleanYoutubeUrl(url) {
-        const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-        const match = url.match(regExp);
-        return (match && match[7].length === 11) ? match[7] : null;
     }
 
     async function addExam() {
@@ -331,12 +415,15 @@
         const url = document.getElementById('examUrl').value.trim();
         const type = document.getElementById('examType').value;
         if(!cat || !title || !url) return alert("البيانات ناقصة");
-
-        // تنظيف القيمة من المسافات حول الشرطة لضمان المطابقة
         cat = cat.replace(/\s*-\s*/, "-").trim();
-
         const { error } = await supabaseClient.from('exams_data').insert([{ category: cat, type: type, title: title, url: url }]);
         if(!error) { alert("✅ تم نشر الاختبار"); renderExams(); }
+    }
+
+    function cleanYoutubeUrl(url) {
+        const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[7].length === 11) ? match[7] : null;
     }
 
     async function renderExams() {
@@ -355,12 +442,6 @@
         const rBody = document.getElementById('requestBody');
         let { data } = await supabaseClient.from('course_requests').select('*').order('id', { ascending: false });
         rBody.innerHTML = data?.map(r => `<tr><td>${r.name}</td><td>${r.phone}</td><td>${r.category}</td><td><button class="btn btn-view" onclick="showImg('${r.screen}')">عرض</button></td><td><button class="btn" style="background:var(--success)" onclick="approveUser('${r.id}','${r.phone}','${r.category}')">قبول</button></td></tr>`).join('') || "";
-    }
-
-    async function renderProgress() {
-        const pBody = document.getElementById('progressListBody');
-        let { data } = await supabaseClient.from('student_progress').select('*').order('id', { ascending: false });
-        pBody.innerHTML = data?.map(p => `<tr><td>${p.student_name}</td><td>${p.student_code}</td><td>${p.subject_name}</td><td>${p.student_level}</td><td>${p.exam_grade}</td><td><button class="btn btn-del" onclick="deleteProgress(${p.id})">حذف</button></td></tr>`).join('') || "";
     }
 
     async function deleteVideo(id) { if(confirm('حذف؟')) { await supabaseClient.from('lessons').delete().eq('id', id); renderVideos(); } }
