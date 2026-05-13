@@ -68,7 +68,48 @@
         <div class="card" style="border-right: 8px solid var(--exam);">
             <h2 style="border-right-color: var(--exam);">📝 إضافة اختبار أو ملف PDF</h2>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-                <div><label>القسم الدراسي:</label><select id="examCat"><option value="">-- اختر القسم --</option><option>1ث</option><option>2ث</option><option>3ث</option></select></div>
+                <div>
+                    <label>القسم الدراسي والمادة 📚:</label>
+                    <select id="examCat">
+                        <option value="">-- اختر الصف والمادة --</option>
+                        <optgroup label="📘 الصف الأول الابتدائي">
+                            <option>1ب - اللغة العربية</option><option>1ب - الرياضيات</option><option>1ب - اللغة الإنجليزية</option>
+                        </optgroup>
+                        <optgroup label="📗 الصف الثاني الابتدائي">
+                            <option>2ب - اللغة العربية</option><option>2ب - الرياضيات</option><option>2ب - اللغة الإنجليزية</option>
+                        </optgroup>
+                        <optgroup label="📙 الصف الثالث الابتدائي">
+                            <option>3ب - اللغة العربية</option><option>3ب - الرياضيات</option><option>3ب - اللغة الإنجليزية</option><option>3ب - التربية الدينية</option><option>3ب - الدراسات الاجتماعية</option><option>3ب - العلوم</option>
+                        </optgroup>
+                        <optgroup label="📕 الصف الرابع الابتدائي">
+                            <option>4ب - اللغة العربية</option><option>4ب - الرياضيات</option><option>4ب - اللغة الإنجليزية</option><option>4ب - العلوم</option><option>4ب - الدراسات الاجتماعية</option>
+                        </optgroup>
+                        <optgroup label="📒 الصف الخامس الابتدائي">
+                            <option>5ب - اللغة العربية</option><option>5ب - الرياضيات</option><option>5ب - اللغة الإنجليزية</option><option>5ب - العلوم</option><option>5ب - الدراسات الاجتماعية</option>
+                        </optgroup>
+                        <optgroup label="📓 الصف السادس الابتدائي">
+                            <option>6ب - اللغة العربية</option><option>6ب - الرياضيات</option><option>6ب - اللغة الإنجليزية</option><option>6ب - العلوم</option><option>6ب - الدراسات الاجتماعية</option>
+                        </optgroup>
+                        <optgroup label="📘 الصف الأول الإعدادي">
+                            <option>1ع - اللغة العربية</option><option>1ع - اللغة الإنجليزية</option><option>1ع - الرياضيات</option><option>1ع - الدراسات الاجتماعية</option><option>1ع - العلوم</option>
+                        </optgroup>
+                        <optgroup label="📗 الصف الثاني الإعدادي">
+                            <option>2ع - اللغة العربية</option><option>2ع - لغة إنجليزية</option><option>2ع - دراسات اجتماعية</option><option>2ع - رياضيات</option><option>2ع - علوم</option>
+                        </optgroup>
+                        <optgroup label="📙 الصف الثالث الإعدادي">
+                            <option>3ع - اللغة العربية</option><option>3ع - لغة إنجليزية</option><option>3ع - دراسات</option><option>3ع - رياضيات</option><option>3ع - علوم</option>
+                        </optgroup>
+                        <optgroup label="📘 الصف الأول الثانوي">
+                            <option>1ث - اللغة العربية</option><option>1ث - اللغة الأجنبية الأولى</option><option>1ث - اللغة الأجنبية الثانية</option><option>1ث - الرياضيات</option><option>1ث - الفيزياء</option><option>1ث - الكيمياء</option><option>1ث - الأحياء</option><option>1ث - التاريخ</option><option>1ث - الجغرافيا</option><option>1ث - الفلسفة والمنطق</option>
+                        </optgroup>
+                        <optgroup label="📗 الصف الثاني الثانوي">
+                            <option>2ث - اللغة العربية</option><option>2ث - اللغة الأجنبية الأولى</option><option>2ث - اللغة الأجنبية الثانية</option><option>2ث - الرياضيات</option><option>2ث - الفيزياء</option><option>2ث - الكيمياء</option><option>2ث - الأحياء</option><option>2ث - التاريخ</option><option>2ث - الجغرافيا</option><option>2ث - علم النفس</option><option>2ث - الفلسفة</option>
+                        </optgroup>
+                        <optgroup label="📕 الصف الثالث الثانوي">
+                            <option>3ث - اللغة العربية</option><option>3ث - اللغة الأجنبية الأولى</option><option>3ث - الأحياء</option><option>3ث - الكيمياء</option><option>3ث - الفيزياء</option><option>3ث - الرياضيات</option><option>3ث - التاريخ</option><option>3ث - الجغرافيا</option><option>3ث - علم النفس والاجتماع</option><option>3ث - الفلسفة والمنطق</option>
+                        </optgroup>
+                    </select>
+                </div>
                 <div><label>نوع الملف:</label><select id="examType"><option value="pdf">ملف PDF</option><option value="link">رابط خارجي</option></select></div>
                 <div><label>اسم الملف:</label><input type="text" id="examTitle" placeholder="مثال: امتحان شهر أكتوبر"></div>
                 <div><label>الرابط:</label><input type="text" id="examUrl" placeholder="ضع الرابط هنا"></div>
@@ -139,22 +180,16 @@
         renderProgress();
     }
 
-    // --- وظيفة إرسال الواتساب الجديدة ---
     function sendCustomWhatsApp() {
         let phone = document.getElementById('waPhone').value.trim();
         const message = document.getElementById('waMsg').value.trim();
-
         if (!phone || !message) return alert("من فضلك اكتب الرقم والرسالة أولاً");
-
         if (phone.startsWith('0')) { phone = '2' + phone; } 
         else if (!phone.startsWith('20')) { phone = '20' + phone; }
-
-        const encodedMsg = encodeURIComponent(message);
-        const whatsappUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodedMsg}`;
+        const whatsappUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
         window.open(whatsappUrl, '_blank');
     }
 
-    // --- حفظ درجات الطلاب ---
     async function saveStudentProgress() {
         const name = document.getElementById('progName').value;
         const code = document.getElementById('progCode').value;
@@ -186,7 +221,6 @@
         if(confirm('حذف السجل؟')) { await supabaseClient.from('student_progress').delete().eq('id', id); renderProgress(); }
     }
 
-    // --- باقي الوظائف (فيديوهات، اختبارات، طلبات) ---
     async function saveVideo() {
         const cat = document.getElementById('catInput').value;
         const name = document.getElementById('lessonName').value.trim();
@@ -218,6 +252,7 @@
         const type = document.getElementById('examType').value;
         const title = document.getElementById('examTitle').value.trim();
         const url = document.getElementById('examUrl').value.trim();
+        if(!cat || !title || !url) return alert("أكمل بيانات الاختبار");
         const { error } = await supabaseClient.from('exams_data').insert([{ category: cat, type: type, title: title, url: url }]);
         if(!error) { alert("✅ تم النشر"); renderExams(); }
     }
