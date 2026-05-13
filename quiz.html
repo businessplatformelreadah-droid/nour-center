@@ -22,6 +22,7 @@
             background: var(--bg); 
             margin: 0; padding: 0; 
             direction: rtl; 
+            user-select: none; /* منع النسخ لحماية المحتوى */
         }
         
         .navbar { 
@@ -85,20 +86,27 @@
             margin-bottom: 12px; display: flex; align-items: center; 
             justify-content: space-between; box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
             border: 1px solid #eee; 
+            transition: 0.3s;
         }
+        .resource-card:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+
         .info { display: flex; align-items: center; gap: 12px; }
         .icon { width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
         .pdf-icon { background: #fee2e2; color: var(--pdf-color); }
         .link-icon { background: #dcfce7; color: var(--link-color); }
-        .action-btn { text-decoration: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 13px; }
+        
+        .action-btn { text-decoration: none; padding: 8px 20px; border-radius: 8px; font-weight: bold; font-size: 14px; transition: 0.3s; }
         .pdf-btn { background: var(--pdf-color); color: white; }
         .link-btn { background: var(--link-color); color: white; }
+        .pdf-btn:hover, .link-btn:hover { opacity: 0.8; }
 
         #resourcesArea { display: none; margin-top: 20px; border-top: 2px solid #ddd; padding-top: 20px; }
         
+        .empty-msg { color:#888; text-align:center; padding:20px; background: #eee; border-radius: 10px; margin-top: 10px; }
+
         @media (max-width: 500px) {
             .subjects-grid { grid-template-columns: repeat(2, 1fr); }
-            .resource-card { flex-direction: column; text-align: center; gap: 10px; }
+            .resource-card { flex-direction: column; text-align: center; gap: 15px; }
         }
     </style>
 </head>
@@ -116,8 +124,9 @@
         </div>
 
         <div id="resourcesArea">
-            <button onclick="resetView()" style="background:#888; color:white; border:none; padding:5px 15px; border-radius:5px; cursor:pointer; margin-bottom:10px;">⬅️ تغيير المادة</button>
-            <h2 id="selectedSubjectTitle" style="color: var(--accent); margin-bottom: 20px;"></h2>
+            <button onclick="resetView()" style="background:#888; color:white; border:none; padding:8px 20px; border-radius:8px; cursor:pointer; margin-bottom:20px; font-family:'Cairo';">⬅️ العودة للمواد</button>
+            
+            <h2 id="selectedSubjectTitle" style="color: var(--accent); margin-bottom: 20px; text-align: center;"></h2>
             
             <h2 class="section-title">📂 المذكرات والملفات (PDF)</h2>
             <div id="pdfList"></div>
@@ -128,11 +137,12 @@
     </div>
 
     <script>
-        // إعداد Supabase
+        // إعدادات Supabase (نفس بياناتك)
         const SUPABASE_URL = 'https://viutmpktcgceyofuxmus.supabase.co'; 
         const SUPABASE_KEY = 'sb_publishable_QoIPp4IFBEdES90fNOqbKg_6kIF0GeO';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // بيانات المراحل الدراسية
         const studyData = [
             { title: "📘 الصف الأول الابتدائي", short: "1ب", subjects: ["اللغة العربية", "الرياضيات", "اللغة الإنجليزية"] },
             { title: "📗 الصف الثاني الابتدائي", short: "2ب", subjects: ["اللغة العربية", "الرياضيات", "اللغة الإنجليزية"] },
@@ -148,6 +158,7 @@
             { title: "📕 الصف الثالث الثانوي", short: "3ث", subjects: ["اللغة العربية", "اللغة الأجنبية الأولى", "الأحياء", "الكيمياء", "الفيزياء", "الرياضيات", "التاريخ", "الجغرافيا", "علم النفس والاجتماع", "الفلسفة والمنطق"] }
         ];
 
+        // بناء واجهة الاختيارات
         function init() {
             const container = document.getElementById('levelsContainer');
             container.innerHTML = ""; 
@@ -167,6 +178,7 @@
             });
         }
 
+        // جلب المحتوى من قاعدة البيانات
         async function loadContent(itemKey, fullTitle) {
             document.getElementById('selectionArea').style.display = 'none';
             document.getElementById('resourcesArea').style.display = 'block';
@@ -180,11 +192,12 @@
             linksList.innerHTML = "<p style='text-align:center;'>جاري جلب الاختبارات... ⏳</p>";
 
             try {
-                // جلب البيانات من سوبابيز من جدول exams_data
+                // جلب البيانات من جدول exams_data
+                // ملاحظة: العمود 'category' في الجدول يجب أن يخزن القيمة بصيغة "1ث-الفيزياء"
                 const { data: exams, error } = await supabaseClient
                     .from('exams_data')
                     .select('*')
-                    .eq('category', itemKey); // التأكد من أن العمود اسمه category في سوبابيز
+                    .eq('category', itemKey); 
 
                 if (error) throw error;
 
@@ -199,7 +212,7 @@
                         const html = `
                             <div class="resource-card">
                                 <div class="info">
-                                    <div class="icon ${item.type === 'pdf' ? 'pdf-icon' : 'link-icon'}">${item.type === 'pdf' ? '📄' : '🌐'}</div>
+                                    <div class="icon ${item.type === 'pdf' ? 'pdf-icon' : 'link-icon'}">${item.type === 'pdf' ? '📄' : '📝'}</div>
                                     <div class="title-text"><strong>${item.title}</strong></div>
                                 </div>
                                 <a href="${item.url}" target="_blank" class="action-btn ${item.type === 'pdf' ? 'pdf-btn' : 'link-btn'}">
@@ -217,12 +230,12 @@
                     });
                 }
 
-                if (!foundPdf) pdfList.innerHTML = '<div style="color:#888; text-align:center; padding:10px;">لا توجد ملفات مرفوعة حالياً.</div>';
-                if (!foundLink) linksList.innerHTML = '<div style="color:#888; text-align:center; padding:10px;">لا توجد اختبارات متاحة حالياً.</div>';
+                if (!foundPdf) pdfList.innerHTML = '<div class="empty-msg">لا توجد ملفات مرفوعة حالياً لهذه المادة.</div>';
+                if (!foundLink) linksList.innerHTML = '<div class="empty-msg">لا توجد اختبارات متاحة حالياً لهذه المادة.</div>';
 
             } catch (err) {
                 console.error("Supabase Error:", err.message);
-                pdfList.innerHTML = "<p style='color:red; text-align:center;'>خطأ في الاتصال بالسيرفر</p>";
+                pdfList.innerHTML = "<p style='color:red; text-align:center;'>❌ فشل الاتصال بقاعدة البيانات</p>";
                 linksList.innerHTML = "";
             }
 
@@ -236,6 +249,12 @@
         }
 
         window.onload = init;
+
+        // حماية المحتوى
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73)) return false;
+        };
     </script>
 </body>
 </html>

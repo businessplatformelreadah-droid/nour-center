@@ -1,53 +1,36 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>مشغل أكاديمية حلم نور | الحماية القصوى</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --main: #2c3e50; --accent: #3498db; --danger: #e74c3c; --time-bg: #1a252f; }
+        :root { --main: #2c3e50; --accent: #3498db; --danger: #e74c3c; --time-bg: #1a252f; --success: #27ae60; }
         body { background: #f4f7f6; font-family: 'Cairo', sans-serif; user-select: none; margin: 0; padding: 20px; direction: rtl; }
 
         .player-container { max-width: 900px; margin: auto; background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         .lesson-header { text-align: center; padding: 15px; background: #fff; color: var(--main); margin: 0; border-bottom: 1px solid #eee; font-size: 1.2rem; }
 
-        .video-clipper {
-            position: relative; 
-            width: 100%; 
-            padding-top: 56.25%; 
-            background: #000; 
-            overflow: hidden;
-        }
-
-        #mainVideo {
-            position: absolute;
-            top: -12%; left: -2%;
-            width: 104%; height: 125%; 
-            border: none;
-        }
-
-        .video-shield {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 5;
-            background: rgba(0,0,0,0);
-            cursor: default;
-        }
+        .video-clipper { position: relative; width: 100%; padding-top: 56.25%; background: #000; overflow: hidden; }
+        #mainVideo { position: absolute; top: -12%; left: -2%; width: 104%; height: 125%; border: none; }
+        .video-shield { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; background: rgba(0,0,0,0); cursor: default; }
 
         .external-controls { background: var(--main); padding: 20px; display: flex; flex-direction: column; gap: 15px; align-items: center; position: relative; z-index: 20; }
         .buttons-group { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center; }
 
-        .time-counter {
-            background: var(--time-bg); color: #00ffcc; padding: 8px 15px; border-radius: 8px;
-            font-family: 'Courier New', monospace; font-weight: bold; font-size: 1.1rem;
-            border: 1px solid #34495e; direction: ltr; min-width: 130px; text-align: center;
-        }
-
-        .control-btn { background: var(--accent); color: white; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; transition: 0.2s; font-size: 16px; }
-        .control-btn:active { transform: scale(0.95); }
+        .time-counter { background: var(--time-bg); color: #00ffcc; padding: 8px 15px; border-radius: 8px; font-family: 'Courier New', monospace; font-weight: bold; font-size: 1.1rem; border: 1px solid #34495e; direction: ltr; min-width: 130px; text-align: center; }
+        .control-btn { background: var(--accent); color: white; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 16px; font-family: 'Cairo'; }
         .control-btn:hover { background: #2980b9; }
+
+        /* قائمة الدروس الجديدة */
+        .playlist-card { max-width: 900px; margin: 20px auto; background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .playlist-title { color: var(--main); font-weight: bold; margin-bottom: 15px; border-right: 4px solid var(--success); padding-right: 10px; }
+        .lesson-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid #eee; border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: 0.3s; }
+        .lesson-item:hover { background: #f0faff; border-color: var(--accent); }
+        .lesson-item.active { background: var(--accent); color: white; border-color: var(--accent); }
+        .play-icon { font-size: 20px; }
 
         .volume-container { display: flex; align-items: center; gap: 12px; color: white; margin-top: 5px; }
         input[type=range] { cursor: pointer; width: 150px; }
@@ -57,7 +40,7 @@
 <body>
 
     <div class="player-container">
-        <h2 class="lesson-header" id="lessonTitle">جاري تحميل بيانات الحصة...</h2>
+        <h2 class="lesson-header" id="lessonTitle">اختر درساً للمشاهدة 📺</h2>
         
         <div id="playerArea">
             <div class="video-clipper">
@@ -75,7 +58,6 @@
                 <button class="control-btn" onclick="seek(10)">⏩ 10ث</button>
                 <button class="control-btn" onclick="window.history.back()" style="background:#7f8c8d;">🔙 خروج</button>
             </div>
-
             <div class="volume-container">
                 <span>🔈</span>
                 <input type="range" id="volumeSlider" min="0" max="100" value="100" oninput="changeVolume(this.value)">
@@ -85,31 +67,23 @@
         </div>
     </div>
 
+    <div class="playlist-card">
+        <div class="playlist-title">قائمة دروس القسم: <span id="categoryNameText">...</span></div>
+        <div id="lessonsList">جاري تحميل الدروس...</div>
+    </div>
+
     <script>
+        // إعدادات قاعدة البيانات (نفس بياناتك)
+        const SUPABASE_URL = 'https://viutmpktcgceyofuxmus.supabase.co'; 
+        const SUPABASE_KEY = 'sb_publishable_QoIPp4IFBEdES90fNOqbKg_6kIF0GeO';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         let player;
         const urlParams = new URLSearchParams(window.location.search);
-        let rawVideoUrl = urlParams.get('video');
-        let lessonName = urlParams.get('title') ? decodeURIComponent(urlParams.get('title')) : "مشاهدة الحصة التعليمية";
+        // بنقرأ اسم القسم (المادة) اللي مبعوت من صفحة sub-categories
+        let subCategory = urlParams.get('sub'); 
 
-        document.getElementById('lessonTitle').innerText = lessonName;
-
-        // دالة استخراج الـ ID "الجوكر" - بتشغل أي رابط يوتيوب في العالم
-        function extractYoutubeId(url) {
-            if (!url) return null;
-            // إزالة المسافات وأي تشفير زائد
-            url = decodeURIComponent(url).trim();
-            
-            // Regex مطور للتعامل مع كل الصيغ بما فيها روابط الموبايل والـ Shared والمختصرة
-            const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
-            const match = url.match(regExp);
-            
-            if (match && match[1]) {
-                return match[1];
-            } else {
-                // لو المستخدم حط الـ ID مباشرة (11 حرف)
-                return url.length === 11 ? url : null;
-            }
-        }
+        document.getElementById('categoryNameText').innerText = subCategory || "غير محدد";
 
         // تحميل مكتبة يوتيوب
         var tag = document.createElement('script');
@@ -117,87 +91,93 @@
         var firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-        window.onYouTubeIframeAPIReady = function() {
-            let vId = extractYoutubeId(rawVideoUrl);
-            
-            if (!vId) {
-                document.getElementById('playerArea').innerHTML = `
-                    <div class="error-msg">
-                        <h3>⚠️ خطأ في رابط الحصة</h3>
-                        <p>تأكد من نسخ رابط يوتيوب صحيح من تطبيق يوتيوب أو المتصفح.</p>
-                    </div>`;
+        // جلب الدروس من Supabase عند فتح الصفحة
+        async function loadLessons() {
+            if(!subCategory) {
+                document.getElementById('lessonsList').innerHTML = "<p>عفواً، لم يتم تحديد قسم.</p>";
                 return;
             }
 
+            const { data: lessons, error } = await supabaseClient
+                .from('lessons')
+                .select('*')
+                .eq('category', subCategory)
+                .order('id', { ascending: true });
+
+            if (error || !lessons || lessons.length === 0) {
+                document.getElementById('lessonsList').innerHTML = "<p class='error-msg'>لا توجد دروس مرفوعة لهذا القسم حتى الآن.</p>";
+                return;
+            }
+
+            // عرض قائمة الدروس
+            const listHtml = lessons.map((l, index) => `
+                <div class="lesson-item" id="item-${index}" onclick="changeLesson('${l.url}', '${l.title}', ${index})">
+                    <span>🎬 ${l.title}</span>
+                    <span class="play-icon">▶️</span>
+                </div>
+            `).join('');
+            
+            document.getElementById('lessonsList').innerHTML = listHtml;
+
+            // تشغيل أول فيديو تلقائياً
+            if(lessons.length > 0) {
+                setTimeout(() => changeLesson(lessons[0].url, lessons[0].title, 0), 1000);
+            }
+        }
+
+        function changeLesson(vId, title, index) {
+            document.getElementById('lessonTitle').innerText = title;
+            
+            // تمييز الدرس النشط في القائمة
+            document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('item-' + index).classList.add('active');
+
+            if (player && player.loadVideoById) {
+                player.loadVideoById(vId);
+            } else {
+                // أول مرة يتم فيها تحميل المشغل
+                createPlayer(vId);
+            }
+        }
+
+        function createPlayer(vId) {
             player = new YT.Player('mainVideo', {
                 videoId: vId,
                 playerVars: {
-                    'autoplay': 0,
-                    'controls': 0,
-                    'rel': 0,
-                    'showinfo': 0,
-                    'modestbranding': 1,
-                    'iv_load_policy': 3,
-                    'disablekb': 1,
-                    'fs': 0,
-                    'playsinline': 1
+                    'autoplay': 1, 'controls': 0, 'rel': 0, 'modestbranding': 1,
+                    'disablekb': 1, 'fs': 0, 'playsinline': 1
                 },
                 events: {
-                    'onReady': onPlayerReady,
+                    'onReady': (e) => setInterval(updateTimer, 1000),
                     'onError': onPlayerError
                 }
             });
-        };
-
-        function onPlayerReady(event) {
-            setInterval(updateTimer, 1000);
         }
 
-        function onPlayerError(e) {
-            document.getElementById('playerArea').innerHTML = `
-                <div class="error-msg">
-                    <h3>❌ الفيديو غير متاح</h3>
-                    <p>تأكد أن الفيديو "عام" أو "غير مدرج" ومفعل به خيار "التضمين" في إعدادات يوتيوب.</p>
-                </div>`;
+        function onPlayerError() {
+            alert("خطأ في تحميل الفيديو، تأكد من الرابط.");
         }
 
-        function formatTime(seconds) {
-            let mins = Math.floor(seconds / 60);
-            let secs = Math.floor(seconds % 60);
-            return (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
-        }
-
+        // باقي وظائف التحكم (نفس اللي عندك)
         function updateTimer() {
-            if (player && player.getCurrentTime && player.getDuration) {
+            if (player && player.getCurrentTime) {
                 let current = player.getCurrentTime();
                 let total = player.getDuration();
-                if (total > 0) {
-                    document.getElementById('timerDisplay').innerText = formatTime(current) + " / " + formatTime(total);
-                }
+                if (total > 0) document.getElementById('timerDisplay').innerText = formatTime(current) + " / " + formatTime(total);
             }
         }
+        function formatTime(s) { let m=Math.floor(s/60); let sec=Math.floor(s%60); return (m<10?'0':'')+m+':'+(sec<10?'0':'')+sec; }
+        function playVid() { player.playVideo(); }
+        function pauseVid() { player.pauseVideo(); }
+        function seek(s) { player.seekTo(player.getCurrentTime() + s, true); }
+        function changeVolume(v) { player.setVolume(v); document.getElementById('volPercent').innerText = v + "%"; }
 
-        function playVid() { if(player && player.playVideo) player.playVideo(); }
-        function pauseVid() { if(player && player.pauseVideo) player.pauseVideo(); }
-        
-        function seek(seconds) {
-            if(player && player.getCurrentTime) {
-                player.seekTo(player.getCurrentTime() + seconds, true);
-            }
-        }
-        
-        function changeVolume(val) {
-            if(player && player.setVolume) {
-                player.setVolume(val);
-                document.getElementById('volPercent').innerText = val + "%";
-            }
-        }
+        // استدعاء جلب الدروس
+        window.onload = loadLessons;
 
         // الحماية
         document.addEventListener('contextmenu', e => e.preventDefault());
-        document.onkeydown = function(e) {
-            if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73) || (e.ctrlKey && e.keyCode == 85)) return false;
-        };
+        document.onkeydown = function(e) { if(e.keyCode==123 || (e.ctrlKey && e.shiftKey && e.keyCode==73)) return false; };
     </script>
 </body>
 </html>
