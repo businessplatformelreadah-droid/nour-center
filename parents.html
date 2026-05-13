@@ -9,22 +9,61 @@
     <style>
         :root { --main: #2c3e50; --accent: #3498db; --success: #27ae60; --bg: #f4f7f6; }
         body { font-family: 'Cairo', sans-serif; background: var(--bg); margin: 0; padding: 20px; direction: rtl; }
-        .search-container { max-width: 500px; margin: 30px auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
-        input { width: 100%; padding: 15px; margin-bottom: 15px; border: 2px solid #ddd; border-radius: 12px; outline: none; font-family: 'Cairo'; font-size: 18px; box-sizing: border-box; text-align: center; }
-        .btn-search { background: var(--main); color: white; border: none; padding: 15px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: bold; font-size: 18px; }
-        .result-card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border-right: 6px solid var(--success); }
+        
+        .search-container { 
+            max-width: 500px; 
+            margin: 30px auto; 
+            background: white; 
+            padding: 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            text-align: center; 
+        }
+        
+        h1 { color: var(--main); margin-bottom: 20px; font-size: 22px; }
+        
+        input { 
+            width: 100%; padding: 15px; margin-bottom: 15px; 
+            border: 2px solid #ddd; border-radius: 12px; 
+            outline: none; font-family: 'Cairo'; font-size: 18px; 
+            box-sizing: border-box; text-align: center; 
+        }
+        
+        .btn-search { 
+            background: var(--main); color: white; border: none; 
+            padding: 15px; border-radius: 12px; cursor: pointer; 
+            width: 100%; font-weight: bold; font-size: 18px; 
+            transition: 0.3s;
+        }
+        .btn-search:hover { background: var(--accent); }
+        
+        .result-card { 
+            background: white; padding: 20px; border-radius: 15px; 
+            margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
+            border-right: 8px solid var(--success); 
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
         .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #eee; }
+        .info-row:last-child { border: none; }
+        
         .label { font-weight: bold; color: #7f8c8d; }
         .value { color: var(--main); font-weight: 700; }
+        
+        #errorMsg { color: #e74c3c; margin-top: 15px; display: none; font-weight: bold; }
+        #loading { display: none; color: var(--accent); margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <div class="search-container">
-        <h2>📊 متابعة مستوى الطالب</h2>
+        <h1>📊 متابعة مستوى الطالب</h1>
         <input type="text" id="studentCodeInput" placeholder="أدخل كود الطالب هنا">
         <button class="btn-search" onclick="searchProgress()">عرض التقارير</button>
-        <p id="errorMsg" style="display:none; color:red; margin-top:15px;">❌ لا توجد بيانات مسجلة لهذا الكود</p>
+        <div id="loading">جاري البحث عن البيانات...</div>
+        <p id="errorMsg">❌ عذراً، لا توجد بيانات مسجلة لهذا الكود</p>
     </div>
 
     <div id="resultsWrapper" style="max-width: 600px; margin: auto;"></div>
@@ -35,42 +74,75 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     async function searchProgress() {
-        // الـ .trim() هنا بتمسح أي مسافات الطالب كتبها غلط
         const code = document.getElementById('studentCodeInput').value.trim();
         const wrapper = document.getElementById('resultsWrapper');
         const errorMsg = document.getElementById('errorMsg');
+        const loading = document.getElementById('loading');
 
-        if(!code) return alert("اكتب الكود أولاً");
+        if(!code) return alert("من فضلك اكتب كود الطالب أولاً");
 
-        wrapper.innerHTML = "جاري التحميل..."; 
-        errorMsg.style.display = 'none';
-
-        const { data, error } = await supabaseClient
-            .from('student_progress')
-            .select('*')
-            .eq('student_code', code)
-            .order('created_at', { ascending: false });
-
+        // إعداد الواجهة للبحث
         wrapper.innerHTML = ""; 
+        errorMsg.style.display = 'none';
+        loading.style.display = 'block';
 
-        if (data && data.length > 0) {
-            data.forEach(item => {
-                wrapper.innerHTML += `
-                    <div class="result-card">
-                        <h3 style="text-align:center; color:var(--accent)">مادة: ${item.subject_name || 'عام'}</h3>
-                        <div class="info-row"><span class="label">الطالب:</span><span class="value">${item.student_name}</span></div>
-                        <div class="info-row"><span class="label">الكود:</span><span class="value">${item.student_code}</span></div>
-                        <div class="info-row"><span class="label">الحضور:</span><span class="value">${item.attendance}</span></div>
-                        <div class="info-row"><span class="label">المستوى:</span><span class="value">${item.student_level || item.interaction}</span></div>
-                        <div class="info-row"><span class="label">الدرجة:</span><span class="value" style="color:orange">${item.exam_grade}</span></div>
-                        <div class="info-row"><span class="label">التاريخ:</span><span class="value">${new Date(item.created_at).toLocaleDateString('ar-EG')}</span></div>
-                    </div>
-                `;
-            });
-        } else {
-            errorMsg.style.display = 'block';
+        try {
+            // جلب كل السجلات المرتبطة بالكود
+            const { data, error } = await supabaseClient
+                .from('student_progress')
+                .select('*')
+                .eq('student_code', code)
+                .order('created_at', { ascending: false });
+
+            loading.style.display = 'none';
+
+            if (data && data.length > 0) {
+                // تكرار إنشاء كارت لكل مادة تم العثور عليها
+                data.forEach(item => {
+                    const cardHTML = `
+                        <div class="result-card">
+                            <h2 style="text-align: center; color: var(--success); font-size: 18px; margin-top:0;">تقرير مادة: ${item.subject_name || 'عام'} ✅</h2>
+                            
+                            <div class="info-row">
+                                <span class="label">اسم الطالب:</span>
+                                <span class="value">${item.student_name}</span>
+                            </div>
+                            
+                            <div class="info-row">
+                                <span class="label">الحضور والغياب:</span>
+                                <span class="value">${item.attendance}</span>
+                            </div>
+                            
+                            <div class="info-row">
+                                <span class="label">المستوى الدراسي:</span>
+                                <span class="value" style="color: var(--accent);">${item.student_level || item.interaction || 'غير محدد'}</span>
+                            </div>
+                            
+                            <div class="info-row">
+                                <span class="label">درجة الامتحان:</span>
+                                <span class="value" style="color: #e67e22;">${item.exam_grade}</span>
+                            </div>
+
+                            <div class="info-row">
+                                <span class="label">تاريخ التقرير:</span>
+                                <span class="value" style="font-size: 12px; color: #95a5a6;">
+                                    ${new Date(item.created_at).toLocaleDateString('ar-EG')}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                    wrapper.innerHTML += cardHTML;
+                });
+            } else {
+                errorMsg.style.display = 'block';
+            }
+        } catch (err) {
+            loading.style.display = 'none';
+            alert("حدث خطأ غير متوقع، يرجى المحاولة مرة أخرى");
+            console.error(err);
         }
     }
 </script>
+
 </body>
 </html>
